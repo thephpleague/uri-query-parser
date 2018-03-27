@@ -9,7 +9,7 @@ _(In case of a bug report Please complete the table below)_
 | Information | Description |
 |--------------|---------|
 | league-uri-components version |  |
-| PHP/HHVM version |  |
+| PHP version |  |
 | OS Platform |  |
 
 
