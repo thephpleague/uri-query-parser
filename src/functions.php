@@ -22,7 +22,7 @@ namespace League\Uri;
  *
  * @return null|string
  */
-function build_query($pairs, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986)
+function query_build($pairs, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986)
 {
     static $builder;
 
@@ -42,7 +42,7 @@ function build_query($pairs, string $separator = '&', int $enc_type = PHP_QUERY_
  *
  * @return array
  */
-function parse_query($query, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): array
+function query_parse($query, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): array
 {
     static $parser;
 

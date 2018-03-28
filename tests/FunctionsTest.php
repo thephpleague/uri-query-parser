@@ -21,25 +21,25 @@ class FunctionsTest extends TestCase
     public function testEncodingThrowsExceptionWithQueryParser()
     {
         $this->expectException(UnsupportedEncoding::class);
-        Uri\parse_query('foo=bar', '&', 42);
+        Uri\query_parse('foo=bar', '&', 42);
     }
 
     public function testInvalidQueryStringThrowsExceptionWithQueryParser()
     {
         $this->expectException(MalFormedQuery::class);
-        Uri\parse_query("foo=bar\0");
+        Uri\query_parse("foo=bar\0");
     }
 
     public function testEncodingThrowsExceptionWithQueryBuilder()
     {
         $this->expectException(UnsupportedEncoding::class);
-        Uri\build_query(['foo' => 'bar'], '&', 42);
+        Uri\query_build(['foo' => 'bar'], '&', 42);
     }
 
     public function testWrongTypeThrowExceptionParseQuery()
     {
         $this->expectException(TypeError::class);
-        Uri\parse_query(['foo=bar'], '&', PHP_QUERY_RFC1738);
+        Uri\query_parse(['foo=bar'], '&', PHP_QUERY_RFC1738);
     }
 
     /**
@@ -123,7 +123,7 @@ class FunctionsTest extends TestCase
      */
     public function testParse($query, $separator, $expected, $encoding)
     {
-        $this->assertSame($expected, Uri\parse_query($query, $separator, $encoding));
+        $this->assertSame($expected, Uri\query_parse($query, $separator, $encoding));
     }
 
     public function parserProvider()
@@ -298,10 +298,10 @@ class FunctionsTest extends TestCase
         $expected_rfc3987,
         $expected_no_encoding
     ) {
-        $this->assertSame($expected_rfc1738, Uri\build_query($pairs, '&', PHP_QUERY_RFC1738));
-        $this->assertSame($expected_rfc3986, Uri\build_query($pairs, '&', PHP_QUERY_RFC3986));
-        $this->assertSame($expected_rfc3987, Uri\build_query($pairs, '&', QueryParser::RFC3987_ENCODING));
-        $this->assertSame($expected_no_encoding, Uri\build_query($pairs, '&', QueryParser::NO_ENCODING));
+        $this->assertSame($expected_rfc1738, Uri\query_build($pairs, '&', PHP_QUERY_RFC1738));
+        $this->assertSame($expected_rfc3986, Uri\query_build($pairs, '&', PHP_QUERY_RFC3986));
+        $this->assertSame($expected_rfc3987, Uri\query_build($pairs, '&', QueryParser::RFC3987_ENCODING));
+        $this->assertSame($expected_no_encoding, Uri\query_build($pairs, '&', QueryParser::NO_ENCODING));
     }
 
     public function buildProvider()
@@ -430,18 +430,18 @@ class FunctionsTest extends TestCase
     public function testBuildQueryThrowsExceptionOnWrongType()
     {
         $this->expectException(TypeError::class);
-        Uri\build_query(date_create());
+        Uri\query_build(date_create());
     }
 
     public function testBuildQueryThrowsExceptionOnInvalidPair()
     {
         $this->expectException(MalFormedPair::class);
-        Uri\build_query(['foo', 'bar']);
+        Uri\query_build(['foo', 'bar']);
     }
 
     public function testBuildQueryThrowsExceptionOnInvalidPairValue()
     {
         $this->expectException(MalFormedPair::class);
-        Uri\build_query([['foo', new ArrayIterator(['foo', 'bar', 'baz'])]]);
+        Uri\query_build([['foo', new ArrayIterator(['foo', 'bar', 'baz'])]]);
     }
 }

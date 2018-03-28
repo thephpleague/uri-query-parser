@@ -11,14 +11,14 @@ This package contains a userland PHP uri query parser and builder.
 
 use League\Uri;
 
-$pairs = Uri\parse_query('module=home&action=show&page=😓');
+$pairs = Uri\query_parse('module=home&action=show&page=😓');
 // returns [
 //     ['module', 'home'],
 //     ['action', 'show'],
 //     ['page', '😓']
 // ];
 
-$str = Uri\build_query([['module', 'home'], ['action', 'show'], ['page', '😓']]);
+$str = Uri\query_build([['module', 'home'], ['action', 'show'], ['page', '😓']]);
 // returns 'module=home&action=show&page=😓'
 ```
 
@@ -28,8 +28,6 @@ System Requirements
 You need:
 
 - **PHP >= 7.0** but the latest stable version of PHP is recommended
-
-**This package conflict with `League\Uri\Components` version 1.x** as the parsing/building algorithms have been update to preserve pairs order and to be more in line with [UrlSearchParams](https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/URLSearchParams)
 
 Installation
 --------
@@ -41,6 +39,8 @@ $ composer require league/uri-query-parser
 Documentation
 --------
 
+**The parsing/building algorithms preserve pairs order and uses the same algorithm used by JavaScript [UrlSearchParams](https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/URLSearchParams)**
+
 ### Parsing the URI query string
 
 Parsing a query string is easy.
@@ -50,7 +50,7 @@ Parsing a query string is easy.
 
 use League\Uri;
 
-$pairs = Uri\parse_query('module=home&action=show&page=😓');
+$pairs = Uri\query_parse('module=home&action=show&page=😓');
 // returns [
 //     ['module', 'home'],
 //     ['action', 'show'],
@@ -60,7 +60,7 @@ $pairs = Uri\parse_query('module=home&action=show&page=😓');
 
 The returned array is a collection of key/value pairs. Each pair is represented as an array where the first element is the pair key and the second element the pair value. While the pair key is always a string, the pair value can be a string or the `null` value.
 
-By default `League\Uri\parse_query` will assume that the query separator is the `&` character and that the query string is encoded following [RFC3986](https://tools.ietf.org/html/rfc3986#section-3.4). But you can specify the separator character as well as the string encoding algorithm using its other two arguments.
+By default `League\Uri\query_parse` will assume that the query separator is the `&` character and that the query string is encoded following [RFC3986](https://tools.ietf.org/html/rfc3986#section-3.4). But you can specify the separator character as well as the string encoding algorithm using its other two arguments.
 
 
 ```php
@@ -68,7 +68,7 @@ By default `League\Uri\parse_query` will assume that the query separator is the 
 
 use League\Uri;
 
-$pairs = Uri\parse_query(
+$pairs = Uri\query_parse(
     'module=home:action=show:page=toto+bar&action=hide',
     ':',
     PHP_QUERY_RFC1738
@@ -83,14 +83,14 @@ $pairs = Uri\parse_query(
 
 ### Building the URI query string
 
-To convert back the collection of key/value pairs into a valid query string you can use the `League\Uri\build_query` function.
+To convert back the collection of key/value pairs into a valid query string you can use the `League\Uri\query_build` function.
 
 ```php
 <?php
 
 use League\Uri;
 
-$pairs = Uri\build_query([
+$pairs = Uri\query_build([
     ['module', 'home'],
     ['action', 'show'],
     ['page', 'toto bar'],
@@ -100,11 +100,11 @@ $pairs = Uri\build_query([
 // returns 'module=home|action=show|page=toto%20bar|action=hide';
 ```
 
-Just like with `League\Uri\parse_query`, you can specify the separator and the encoding algorithm to use.
+Just like with `League\Uri\query_parse`, you can specify the separator and the encoding algorithm to use.
 
 ### Extracting PHP variables
 
-While `League\Uri\parse_query` and `League\Uri\build_query` preserves the query string pairs content and order. If you want to extract PHP variables from the query string *à la* `parse_str` but without content mangling you can use `League\Uri\extract_query`. This functions takes the exact same argument as `League\Uri\parse_query`.
+While `League\Uri\query_parse` and `League\Uri\query_build` preserves the query string pairs content and order. If you want to extract PHP variables from the query string *à la* `parse_str` but without content mangling you can use `League\Uri\extract_query`. This functions takes the exact same argument as `League\Uri\query_parse`.
 
 ```php
 <?php
