@@ -29,6 +29,8 @@ You need:
 
 - **PHP >= 7.0** but the latest stable version of PHP is recommended
 
+**This package conflict with `League\Uri\Components` version 1.x** as the parsing/building algorithms have been update to preserve pairs order and to be more in line with [UrlSearchParams](https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/URLSearchParams)
+
 Installation
 --------
 
