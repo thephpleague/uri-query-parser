@@ -12,7 +12,7 @@ declare(strict_types=1);
 namespace League\Uri;
 
 /**
- * Build a query string from an associative array.
+ * Build a query string from a collection of key/value pairs.
  *
  * @see QueryBuilder::build
  *
@@ -32,7 +32,7 @@ function build_query($pairs, string $separator = '&', int $enc_type = PHP_QUERY_
 }
 
 /**
- * Parse a query string into an associative array of key/value pairs.
+ * Parse a query string into a collection of key/value pairs.
  *
  * @see QueryParser::parse
  *

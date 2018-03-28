@@ -19,12 +19,7 @@ use League\Uri\Exception\UnsupportedEncoding;
 use TypeError;
 
 /**
- * Value object representing a URI Query component.
- *
- * Instances of this interface are considered immutable; all methods that
- * might change state MUST be implemented such that they retain the internal
- * state of the current instance and return an instance that contains the
- * changed state.
+ * A class to parse a URI query string.
  *
  * @package    League\Uri
  * @subpackage League\Uri\Components

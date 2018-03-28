@@ -20,12 +20,7 @@ use Traversable;
 use TypeError;
 
 /**
- * Value object representing a URI Query component.
- *
- * Instances of this interface are considered immutable; all methods that
- * might change state MUST be implemented such that they retain the internal
- * state of the current instance and return an instance that contains the
- * changed state.
+ * A class to build a URI query string from a collection of key/value pairs.
  *
  * @package    League\Uri
  * @subpackage League\Uri\Components
