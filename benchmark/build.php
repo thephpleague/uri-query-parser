@@ -8,5 +8,5 @@ require __DIR__.'/../src/functions.php';
 
 $pairs = ['module' => ['home'], 'action' => ['show'], 'page' => [3]];
 for ($i = 0; $i < 100000; ++$i) {
-    League\Uri\build_query($pairs);
+    League\Uri\query_build($pairs);
 }

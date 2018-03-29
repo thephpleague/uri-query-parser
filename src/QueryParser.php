@@ -26,6 +26,7 @@ use TypeError;
  * @author     Ignace Nyamagana Butera <nyamsprod@gmail.com>
  * @since      1.5.0
  * @see        https://tools.ietf.org/html/rfc3986#section-3.4
+ * @internal   Use the function League\Uri\query_parse and League\Uri\query_extract instead
  */
 final class QueryParser implements EncodingInterface
 {

@@ -23,10 +23,10 @@ use TypeError;
  * A class to build a URI query string from a collection of key/value pairs.
  *
  * @package    League\Uri
- * @subpackage League\Uri\Components
  * @author     Ignace Nyamagana Butera <nyamsprod@gmail.com>
  * @since      1.5.0
  * @see        https://tools.ietf.org/html/rfc3986#section-3.4
+ * @internal   Use the function League\Uri\query_build instead
  */
 final class QueryBuilder implements EncodingInterface
 {

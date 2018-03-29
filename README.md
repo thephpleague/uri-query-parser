@@ -29,6 +29,8 @@ You need:
 
 - **PHP >= 7.0** but the latest stable version of PHP is recommended
 
+**The package conflict with League\Uri\Components version 1.x**
+
 Installation
 --------
 
