@@ -106,7 +106,7 @@ Just like with `League\Uri\query_parse`, you can specify the separator and the e
 
 ### Extracting PHP variables
 
-While `League\Uri\query_parse` and `League\Uri\query_build` preserves the query string pairs content and order. If you want to extract PHP variables from the query string *à la* `parse_str` but without content mangling you can use `League\Uri\extract_query`. This functions takes the exact same argument as `League\Uri\query_parse`.
+While `League\Uri\query_parse` and `League\Uri\query_build` preserves the query string pairs content and order. If you want to extract PHP variables from the query string *à la* `parse_str` but without content mangling you can use `League\Uri\query_extract`. This functions takes the exact same argument as `League\Uri\query_parse`.
 
 ```php
 <?php
@@ -115,7 +115,7 @@ use League\Uri;
 
 $query = 'module=show&arr.test[1]=sid&arr test[4][two]=fred&module=hide';
 
-$params = Uri\extract_query($query, '&', PHP_QUERY_RFC1738);
+$params = Uri\query_extract($query, '&', PHP_QUERY_RFC1738);
 // returns [
 //     'module' = 'hide',
 //     'arr.test' => [

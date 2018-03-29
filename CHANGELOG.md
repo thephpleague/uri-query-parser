@@ -6,6 +6,9 @@ All Notable changes to League Uri Query Parser will be documented in this file
 
 ### Added
 
+- `League\Uri\query_parse`
+- `League\Uri\query_build`
+- `League\Uri\query_extract`
 - `League\Uri\ExceptionInterface`
 - `League\Uri\Exception\MalformedPair`
 - `League\Uri\Exception\MalformedQuery`
@@ -21,4 +24,6 @@ All Notable changes to League Uri Query Parser will be documented in this file
 
 ### Remove
 
-- None
+- `League\Uri\parse_query`
+- `League\Uri\build_query`
+- `League\Uri\extract_query`

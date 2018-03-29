@@ -62,7 +62,7 @@ function query_parse($query, string $separator = '&', int $enc_type = PHP_QUERY_
  *
  * @return array
  */
-function extract_query($query, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): array
+function query_extract($query, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): array
 {
     static $parser;
 

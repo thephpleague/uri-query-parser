@@ -50,7 +50,7 @@ class FunctionsTest extends TestCase
      */
     public function testExtractQuery($query, $expectedData)
     {
-        $this->assertSame($expectedData, Uri\extract_query($query));
+        $this->assertSame($expectedData, Uri\query_extract($query));
     }
 
     public function extractQueryProvider()
