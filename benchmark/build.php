@@ -3,7 +3,7 @@
 require __DIR__.'/../src/EncodingInterface.php';
 require __DIR__.'/../src/Exception/MalFormedPair.php';
 require __DIR__.'/../src/Exception/UnsupportedEncoding.php';
-require __DIR__.'/../src/QueryBuilder.php';
+require __DIR__.'/../src/Parser/QueryBuilder.php';
 require __DIR__.'/../src/functions.php';
 
 $pairs = ['module' => ['home'], 'action' => ['show'], 'page' => [3]];

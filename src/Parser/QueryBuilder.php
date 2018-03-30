@@ -12,8 +12,9 @@
  */
 declare(strict_types=1);
 
-namespace League\Uri;
+namespace League\Uri\Parser;
 
+use League\Uri\EncodingInterface;
 use League\Uri\Exception\MalFormedPair;
 use League\Uri\Exception\UnsupportedEncoding;
 use Traversable;

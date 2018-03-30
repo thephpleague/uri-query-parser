@@ -64,9 +64,6 @@
             "dev-master": "1.x-dev"
         }
     },
-    "conflict": {
-        "uri-components": "<2.0"
-    },
     "config": {
         "sort-packages": true
     }

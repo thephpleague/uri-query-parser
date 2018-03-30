@@ -8,7 +8,6 @@ use League\Uri\ComponentInterface;
 use League\Uri\Exception\MalFormedPair;
 use League\Uri\Exception\MalFormedQuery;
 use League\Uri\Exception\UnsupportedEncoding;
-use League\Uri\QueryParser;
 use PHPUnit\Framework\TestCase;
 use TypeError;
 
@@ -300,8 +299,8 @@ class FunctionsTest extends TestCase
     ) {
         $this->assertSame($expected_rfc1738, Uri\query_build($pairs, '&', PHP_QUERY_RFC1738));
         $this->assertSame($expected_rfc3986, Uri\query_build($pairs, '&', PHP_QUERY_RFC3986));
-        $this->assertSame($expected_rfc3987, Uri\query_build($pairs, '&', QueryParser::RFC3987_ENCODING));
-        $this->assertSame($expected_no_encoding, Uri\query_build($pairs, '&', QueryParser::NO_ENCODING));
+        $this->assertSame($expected_rfc3987, Uri\query_build($pairs, '&', ComponentInterface::RFC3987_ENCODING));
+        $this->assertSame($expected_no_encoding, Uri\query_build($pairs, '&', ComponentInterface::NO_ENCODING));
     }
 
     public function buildProvider()

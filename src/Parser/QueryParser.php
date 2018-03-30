@@ -12,8 +12,10 @@
  */
 declare(strict_types=1);
 
-namespace League\Uri;
+namespace League\Uri\Parser;
 
+use League\Uri\ComponentInterface;
+use League\Uri\EncodingInterface;
 use League\Uri\Exception\MalFormedQuery;
 use League\Uri\Exception\UnsupportedEncoding;
 use TypeError;

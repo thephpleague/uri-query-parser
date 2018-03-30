@@ -11,6 +11,9 @@ declare(strict_types=1);
 
 namespace League\Uri;
 
+use League\Uri\Parser\QueryBuilder;
+use League\Uri\Parser\QueryParser;
+
 /**
  * Build a query string from a collection of key/value pairs.
  *
