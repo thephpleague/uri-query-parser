@@ -4,10 +4,9 @@ namespace LeagueTest\Uri;
 
 use ArrayIterator;
 use League\Uri;
-use League\Uri\ComponentInterface;
-use League\Uri\Exception\MalFormedPair;
-use League\Uri\Exception\MalFormedQuery;
-use League\Uri\Exception\UnsupportedEncoding;
+use League\Uri\Components\Parser\Exception;
+use League\Uri\Components\Parser\UnsupportedEncoding;
+use League\Uri\EncodingInterface;
 use PHPUnit\Framework\TestCase;
 use TypeError;
 
@@ -25,7 +24,7 @@ class FunctionsTest extends TestCase
 
     public function testInvalidQueryStringThrowsExceptionWithQueryParser()
     {
-        $this->expectException(MalFormedQuery::class);
+        $this->expectException(Exception::class);
         Uri\query_parse("foo=bar\0");
     }
 
@@ -128,32 +127,6 @@ class FunctionsTest extends TestCase
     public function parserProvider()
     {
         return [
-            'query object' => [
-                new class() implements ComponentInterface {
-                    public function getContent(int $enc_type = self::RFC3986_ENCODING)
-                    {
-                        return 'a=1&a=2';
-                    }
-
-                    public function getUriComponent(): string
-                    {
-                        return '?a=1&a=2';
-                    }
-
-                    public function __toString()
-                    {
-                        return $this->getContent();
-                    }
-
-                    public function withContent($value)
-                    {
-                        return $this;
-                    }
-                },
-                '&',
-                [['a', '1'], ['a', '2']],
-                PHP_QUERY_RFC3986,
-            ],
             'stringable object' => [
                 new class() {
                     public function __toString()
@@ -299,8 +272,8 @@ class FunctionsTest extends TestCase
     ) {
         $this->assertSame($expected_rfc1738, Uri\query_build($pairs, '&', PHP_QUERY_RFC1738));
         $this->assertSame($expected_rfc3986, Uri\query_build($pairs, '&', PHP_QUERY_RFC3986));
-        $this->assertSame($expected_rfc3987, Uri\query_build($pairs, '&', ComponentInterface::RFC3987_ENCODING));
-        $this->assertSame($expected_no_encoding, Uri\query_build($pairs, '&', ComponentInterface::NO_ENCODING));
+        $this->assertSame($expected_rfc3987, Uri\query_build($pairs, '&', EncodingInterface::RFC3987_ENCODING));
+        $this->assertSame($expected_no_encoding, Uri\query_build($pairs, '&', EncodingInterface::NO_ENCODING));
     }
 
     public function buildProvider()
@@ -434,13 +407,13 @@ class FunctionsTest extends TestCase
 
     public function testBuildQueryThrowsExceptionOnInvalidPair()
     {
-        $this->expectException(MalFormedPair::class);
+        $this->expectException(Exception::class);
         Uri\query_build(['foo', 'bar']);
     }
 
     public function testBuildQueryThrowsExceptionOnInvalidPairValue()
     {
-        $this->expectException(MalFormedPair::class);
+        $this->expectException(Exception::class);
         Uri\query_build([['foo', new ArrayIterator(['foo', 'bar', 'baz'])]]);
     }
 }

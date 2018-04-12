@@ -12,10 +12,9 @@
  */
 declare(strict_types=1);
 
-namespace League\Uri\Exception;
+namespace League\Uri\Components\Parser;
 
 use InvalidArgumentException;
-use League\Uri\ExceptionInterface;
 
 /**
  *
@@ -24,6 +23,6 @@ use League\Uri\ExceptionInterface;
  * @author     Ignace Nyamagana Butera <nyamsprod@gmail.com>
  * @since      1.0.0
  */
-class MalFormedPair extends InvalidArgumentException implements ExceptionInterface
+class Exception extends InvalidArgumentException
 {
 }

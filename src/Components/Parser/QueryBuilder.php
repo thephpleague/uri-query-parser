@@ -12,11 +12,9 @@
  */
 declare(strict_types=1);
 
-namespace League\Uri\Parser;
+namespace League\Uri\Components\Parser;
 
 use League\Uri\EncodingInterface;
-use League\Uri\Exception\MalFormedPair;
-use League\Uri\Exception\UnsupportedEncoding;
 use Traversable;
 use TypeError;
 
@@ -81,7 +79,7 @@ final class QueryBuilder implements EncodingInterface
      * @param string $separator Query string separator
      * @param int    $enc_type  Query encoding type
      *
-     * @throws MalFormedPair If a query pair is malformed
+     * @throws Exception If a query pair is malformed
      *
      * @return null|string
      */
@@ -95,7 +93,7 @@ final class QueryBuilder implements EncodingInterface
         $res = [];
         foreach ($pairs as $pair) {
             if (!is_array($pair) || !isset($pair[0])) {
-                throw new MalFormedPair('A pair must be an array where the first element is the pair key and the second element the pair value');
+                throw new Exception('A pair must be an array where the first element is the pair key and the second element the pair value');
             }
             $res[] = $this->buildPair((string) $pair[0], $pair[1]);
         }
@@ -176,7 +174,7 @@ final class QueryBuilder implements EncodingInterface
      * @param string $key   The pair key
      * @param mixed  $value The pair value
      *
-     * @throws MalFormedPair If the pair contains invalid value
+     * @throws Exception If the pair contains invalid value
      *
      * @return string
      */
@@ -199,7 +197,7 @@ final class QueryBuilder implements EncodingInterface
         }
 
         if (!is_scalar($value)) {
-            throw new MalFormedPair(sprintf('A pair value must a stringable object, a scalar or the null value `%s` given', gettype($value)));
+            throw new Exception(sprintf('A pair value must a stringable object, a scalar or the null value `%s` given', gettype($value)));
         }
 
         $value = (string) $value;

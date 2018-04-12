@@ -12,12 +12,9 @@
  */
 declare(strict_types=1);
 
-namespace League\Uri\Parser;
+namespace League\Uri\Components\Parser;
 
-use League\Uri\ComponentInterface;
 use League\Uri\EncodingInterface;
-use League\Uri\Exception\MalFormedQuery;
-use League\Uri\Exception\UnsupportedEncoding;
 use TypeError;
 
 /**
@@ -70,6 +67,7 @@ final class QueryParser implements EncodingInterface
      * @param int    $enc_type  The query encoding algorithm
      *
      * @throws UnsupportedEncoding If the encoding type is invalid
+     * @throws Exception           If the query string is invalid
      *
      * @return array
      */
@@ -77,10 +75,6 @@ final class QueryParser implements EncodingInterface
     {
         if (!isset(self::ENCODING_LIST[$enc_type])) {
             throw new UnsupportedEncoding(sprintf('Unsupported or Unknown Encoding: %s', $enc_type));
-        }
-
-        if ($query instanceof ComponentInterface) {
-            $query = $query->getContent();
         }
 
         if (null === $query) {
@@ -101,7 +95,7 @@ final class QueryParser implements EncodingInterface
 
         static $pattern = '/[\x00-\x1f\x7f]/';
         if (preg_match($pattern, $query)) {
-            throw new MalFormedQuery(sprintf('Invalid query string: %s', $query));
+            throw new Exception(sprintf('Invalid query string: %s', $query));
         }
 
         $this->separator = $separator;

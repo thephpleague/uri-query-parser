@@ -10,12 +10,17 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+declare(strict_types=1);
 
-namespace League\Uri;
+namespace League\Uri\Components\Parser;
 
 /**
- * Marker Interface for package-specific exceptions.
+ *
+ * @package    League\Uri
+ * @subpackage League\Uri\Components
+ * @author     Ignace Nyamagana Butera <nyamsprod@gmail.com>
+ * @since      1.0.0
  */
-interface ExceptionInterface
+class UnsupportedEncoding extends Exception
 {
 }

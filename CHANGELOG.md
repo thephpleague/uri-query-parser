@@ -9,10 +9,10 @@ All Notable changes to League Uri Query Parser will be documented in this file
 - `League\Uri\query_parse`
 - `League\Uri\query_build`
 - `League\Uri\query_extract`
-- `League\Uri\ExceptionInterface`
-- `League\Uri\Exception\MalformedPair`
-- `League\Uri\Exception\MalformedQuery`
-- `League\Uri\Exception\UnsupportedEncoding`
+- `League\Uri\Components\Parser\QueryBuilder`
+- `League\Uri\Components\Parser\QueryParser`
+- `League\Uri\Components\Parser\Exception`
+- `League\Uri\Components\Parser\UnsupportedEncoding`
 
 ### Fixed
 
@@ -27,3 +27,5 @@ All Notable changes to League Uri Query Parser will be documented in this file
 - `League\Uri\parse_query`
 - `League\Uri\build_query`
 - `League\Uri\extract_query`
+- `League\Uri\QueryBuilder`
+- `League\Uri\QueryParser`
