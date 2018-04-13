@@ -5,7 +5,6 @@ namespace LeagueTest\Uri;
 use ArrayIterator;
 use League\Uri;
 use League\Uri\Components\Parser\Exception;
-use League\Uri\Components\Parser\UnsupportedEncoding;
 use League\Uri\EncodingInterface;
 use PHPUnit\Framework\TestCase;
 use TypeError;
@@ -18,7 +17,7 @@ class FunctionsTest extends TestCase
 {
     public function testEncodingThrowsExceptionWithQueryParser()
     {
-        $this->expectException(UnsupportedEncoding::class);
+        $this->expectException(Exception::class);
         Uri\query_parse('foo=bar', '&', 42);
     }
 
@@ -30,7 +29,7 @@ class FunctionsTest extends TestCase
 
     public function testEncodingThrowsExceptionWithQueryBuilder()
     {
-        $this->expectException(UnsupportedEncoding::class);
+        $this->expectException(Exception::class);
         Uri\query_build(['foo' => 'bar'], '&', 42);
     }
 

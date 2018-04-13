@@ -107,14 +107,14 @@ final class QueryBuilder implements EncodingInterface
      * @param string $separator
      * @param int    $enc_type
      *
-     * @throws UnsupportedEncoding If the encoding type is invalid
+     * @throws Exception If the encoding type is invalid
      *
      * @return callable
      */
     private function getEncoder(string $separator, int $enc_type): callable
     {
         if (!isset(self::ENCODING_LIST[$enc_type])) {
-            throw new UnsupportedEncoding(sprintf('Unsupported or Unknown Encoding: %s', $enc_type));
+            throw new Exception(sprintf('Unsupported or Unknown Encoding: %s', $enc_type));
         }
 
         $subdelim = str_replace(html_entity_decode($separator, ENT_HTML5, 'UTF-8'), '', "!$'()*+,;=:@?/&%");

@@ -66,15 +66,15 @@ final class QueryParser implements EncodingInterface
      * @param string $separator The query string separator
      * @param int    $enc_type  The query encoding algorithm
      *
-     * @throws UnsupportedEncoding If the encoding type is invalid
-     * @throws Exception           If the query string is invalid
+     * @throws Exception If the encoding type is invalid
+     * @throws Exception If the query string is invalid
      *
      * @return array
      */
     public function parse($query, string $separator = '&', int $enc_type = self::RFC3986_ENCODING): array
     {
         if (!isset(self::ENCODING_LIST[$enc_type])) {
-            throw new UnsupportedEncoding(sprintf('Unsupported or Unknown Encoding: %s', $enc_type));
+            throw new Exception(sprintf('Unsupported or Unknown Encoding: %s', $enc_type));
         }
 
         if (null === $query) {
