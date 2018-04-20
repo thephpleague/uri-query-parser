@@ -89,7 +89,7 @@ final class QueryParser implements EncodingInterface
     public function parse($query, string $separator = '&', int $enc_type = self::RFC3986_ENCODING): array
     {
         if (!isset(self::ENCODING_LIST[$enc_type])) {
-            throw new UnknownEncoding(\sprintf('Unsupported or Unknown Encoding: %s', $enc_type));
+            throw new UnknownEncoding(\sprintf('Unknown Encoding: %s', $enc_type));
         }
 
         if (null === $query) {
@@ -97,13 +97,10 @@ final class QueryParser implements EncodingInterface
         }
 
         if (!\is_scalar($query) && !\method_exists($query, '__toString')) {
-            throw new TypeError(\sprintf('The query must be a scalar or a stringable object `%s` given', \gettype($query)));
+            throw new TypeError(\sprintf('The query must be a scalar, a stringable object or the `null` value, `%s` given', \gettype($query)));
         }
 
-        if (!\is_string($query)) {
-            $query = (string) $query;
-        }
-
+        $query = (string) $query;
         if ('' === $query) {
             return [['', null]];
         }
@@ -120,6 +117,24 @@ final class QueryParser implements EncodingInterface
     }
 
     /**
+     * Parse a query string pair.
+     *
+     * @param string $pair The query string pair
+     *
+     * @return array
+     */
+    private function parsePair(string $pair): array
+    {
+        list($key, $value) = \explode('=', $pair, 2) + [1 => null];
+        $key = $this->decode($key);
+        if (null !== $value) {
+            $value = $this->decode($value);
+        }
+
+        return [$key, $value];
+    }
+
+    /**
      * Decode a component according to RFC3986.
      *
      * @param string $str
@@ -129,11 +144,11 @@ final class QueryParser implements EncodingInterface
     private function decode(string $str): string
     {
         $str = \preg_replace_callback(self::REGEXP_ENCODED_PATTERN, [$this, 'decodeMatch'], $str);
-        if (self::RFC1738_ENCODING !== $this->enc_type || false === \strpos($str, '+')) {
-            return $str;
+        if (self::RFC1738_ENCODING === $this->enc_type) {
+            return \str_replace('+', ' ', $str);
         }
 
-        return \str_replace('+', ' ', $str);
+        return $str;
     }
 
     /**
@@ -150,40 +165,6 @@ final class QueryParser implements EncodingInterface
         }
 
         return \rawurldecode($matches[0]);
-    }
-
-    /**
-     * Parse a query string pair.
-     *
-     * @param string $pair The query string pair
-     *
-     * @return array
-     */
-    private function parsePair(string $pair): array
-    {
-        list($key, $value) = \explode('=', $pair, 2) + [1 => null];
-        if (null !== $value) {
-            if (\preg_match(self::REGEXP_ENCODED_PATTERN, $value)) {
-                $value = $this->replace($this->decode($value), $this->encoded_separator, $this->separator);
-            } elseif (self::RFC1738_ENCODING === $this->enc_type) {
-                $value = $this->replace($value, '+', ' ');
-            }
-        }
-
-        if (\preg_match(self::REGEXP_ENCODED_PATTERN, $key)) {
-            $key = $this->decode($key);
-        }
-
-        return [$key, $value];
-    }
-
-    private function replace(string $value, string $pattern, string $replace)
-    {
-        if (false === \strpos($value, $pattern)) {
-            return $value;
-        }
-
-        return \str_replace($pattern, $replace, $value);
     }
 
     /**
