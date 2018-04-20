@@ -91,10 +91,7 @@ final class QueryBuilder implements EncodingInterface
         $this->encoder = $this->getEncoder($separator, $enc_type);
         $res = [];
         foreach ($pairs as $pair) {
-            $pair = $this->filterPair($pair);
-            if (!empty($pair)) {
-                $res[] = $this->buildPair($pair);
-            }
+            $res[] = $this->buildPair($pair);
         }
 
         return empty($res) ? null : \implode($separator, $res);
@@ -168,50 +165,38 @@ final class QueryBuilder implements EncodingInterface
     }
 
     /**
-     * validate the submitted pair.
-     *
-     * @param array $pair
-     *
-     * @throws InvalidArgument If the pair contains invalid value
-     *
-     * @return array
-     */
-    private function filterPair(array $pair)
-    {
-        if (empty($pair)) {
-            return $pair;
-        }
-
-        list($key, $value) = \array_values($pair) + [1 => null];
-        if (null === $key || (!\is_scalar($key) && !\method_exists($key, '__toString'))) {
-            throw new InvalidArgument(\sprintf('A pair key must a stringable object or a scalar value `%s` given', \gettype($key)));
-        }
-
-        if (null !== $value && !\is_scalar($value) && !\method_exists($value, '__toString')) {
-            throw new InvalidArgument(\sprintf('A pair value must a stringable object, a scalar or the null value `%s` given', \gettype($value)));
-        }
-
-        return [(string) $key, $value];
-    }
-
-    /**
      * Build a query key/pair association.
      *
      * @param array $pair
+     *
+     * @throws InvalidArgument If the pair is invalid
      *
      * @return string
      */
     private function buildPair(array $pair): string
     {
-        $key = ($this->encoder)($pair[0]);
-        if (null === $pair[1]) {
+        if (empty($pair)) {
+            throw new InvalidArgument('A pair can not be empty');
+        }
+
+        list($key, $value) = \array_values($pair) + [1 => null];
+        if (null === $key || (!\is_scalar($key) && !\method_exists($key, '__toString'))) {
+            throw new InvalidArgument(\sprintf('A pair key must be a stringable object or a scalar value `%s` given', \gettype($key)));
+        }
+
+        $key = ($this->encoder)((string) $key);
+        if (null === $value) {
             return $key;
         }
 
-        if (\is_bool($pair[1])) {
-            return $key.'='.($pair[1] ? '1' : '0');
+        if (\is_bool($value)) {
+            return $key.'='.($value ? '1' : '0');
         }
 
-        return $key.'='.($this->encoder)((string) $pair[1]);
+        if (\is_scalar($value) || \method_exists($value, '__toString')) {
+            return $key.'='.($this->encoder)((string) $value);
+        }
+
+        throw new InvalidArgument(\sprintf('A pair value must a stringable object, a scalar or the null value `%s` given', \gettype($value)));
     }
 }

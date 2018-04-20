@@ -40,6 +40,12 @@ class FunctionsTest extends TestCase
         Uri\query_parse(['foo=bar'], '&', PHP_QUERY_RFC1738);
     }
 
+    public function testWrongTypeThrowExceptionConvert()
+    {
+        $this->expectException(TypeError::class);
+        Uri\pairs_to_params((object) []);
+    }
+
     /**
      * @dataProvider extractQueryProvider
      *
@@ -49,6 +55,7 @@ class FunctionsTest extends TestCase
     public function testExtractQuery($query, $expectedData)
     {
         $this->assertSame($expectedData, Uri\query_extract($query));
+        $this->assertSame($expectedData, Uri\pairs_to_params(Uri\query_parse($query)));
     }
 
     public function extractQueryProvider()
@@ -286,13 +293,6 @@ class FunctionsTest extends TestCase
                 'expected_rfc3987' => null,
                 'expected_no_encoding' => null,
             ],
-            'empty pair' => [
-                'pairs' => [[]],
-                'expected_rfc1738' => null,
-                'expected_rfc3986' => null,
-                'expected_rfc3987' => null,
-                'expected_no_encoding' => null,
-            ],
             'identical keys' => [
                 'pairs' => new ArrayIterator([['a', true] , ['a', '2']]),
                 'expected_rfc1738' => 'a=1&a=2',
@@ -433,12 +433,34 @@ class FunctionsTest extends TestCase
     public function failedBuilderProvider()
     {
         return [
+            'The collection can not contain empty pair' => [
+                [[]],
+            ],
             'The pair key must be stringable' => [
-                'pair' => [[\date_create(), 'bar']],
+                [[\date_create(), 'bar']],
             ],
             'The pair value must be stringable or null' => [
-                'pair' => [['foo', \date_create()]],
+                [['foo', \date_create()]],
             ],
         ];
+    }
+
+    /**
+     * @dataProvider failedBuilderProvider
+     *
+     * @param mixed $pairs
+     */
+    public function testConvertQueryThrowsException($pairs)
+    {
+        $this->expectException(InvalidArgument::class);
+        Uri\pairs_to_params($pairs);
+    }
+
+    public function testConvertBoolean()
+    {
+        $this->assertSame(['foo' => '1', 'bar' => '0'], Uri\pairs_to_params([
+            ['foo', true],
+            ['bar', false],
+        ]));
     }
 }

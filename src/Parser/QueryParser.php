@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace League\Uri\Parser;
 
 use League\Uri\EncodingInterface;
+use Traversable;
 use TypeError;
 
 /**
@@ -191,6 +192,66 @@ final class QueryParser implements EncodingInterface
         }
 
         return $variables;
+    }
+
+    /**
+     * Convert a collection of key/pair value into PHP variables.
+     *
+     * @param mixed $pairs
+     *
+     * @throws TypeError If the pair is not iterable
+     *
+     * @return array
+     */
+    public function convert($pairs): array
+    {
+        if (!\is_array($pairs) && !$pairs instanceof Traversable) {
+            throw new TypeError('the pairs collection must be an array or a Traversable object');
+        }
+
+        $variables = [];
+        foreach ($pairs as $pair) {
+            $pair = $this->filterPair($pair);
+            $this->extractPhpVariable($pair[0], $pair[1], $variables);
+        }
+
+        return $variables;
+    }
+
+    /**
+     * Filter the submitted key/pair array.
+     *
+     * @param array $pair
+     *
+     * @throws InvalidArgument If the pair is invalid
+     *
+     * @return array
+     */
+    private function filterPair(array $pair)
+    {
+        if (empty($pair)) {
+            throw new InvalidArgument('A pair can not be empty');
+        }
+
+        list($key, $value) = \array_values($pair) + [1 => null];
+        if (null === $key || (!\is_scalar($key) && !\method_exists($key, '__toString'))) {
+            throw new InvalidArgument(\sprintf('A pair key must be a stringable object or a scalar value `%s` given', \gettype($key)));
+        }
+
+        $key = \trim((string) $key);
+        if (null === $value) {
+            return [$key, ''];
+        }
+
+        if (\is_bool($value)) {
+            return [$key, $value ? '1' : '0'];
+        }
+
+        if (\is_scalar($value) || \method_exists($value, '__toString')) {
+            return [$key, \rawurldecode((string) $value)];
+        }
+
+        throw new InvalidArgument(\sprintf('A pair value must a stringable object, a scalar or the null value `%s` given', \gettype($value)));
     }
 
     /**
