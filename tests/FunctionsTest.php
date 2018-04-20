@@ -286,6 +286,13 @@ class FunctionsTest extends TestCase
                 'expected_rfc3987' => null,
                 'expected_no_encoding' => null,
             ],
+            'empty pair' => [
+                'pairs' => [[]],
+                'expected_rfc1738' => null,
+                'expected_rfc3986' => null,
+                'expected_rfc3987' => null,
+                'expected_no_encoding' => null,
+            ],
             'identical keys' => [
                 'pairs' => new ArrayIterator([['a', true] , ['a', '2']]),
                 'expected_rfc1738' => 'a=1&a=2',
