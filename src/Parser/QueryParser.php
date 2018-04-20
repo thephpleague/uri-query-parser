@@ -4,7 +4,7 @@
  *
  * @author  Ignace Nyamagana Butera <nyamsprod@gmail.com>
  * @license https://github.com/thephpleague/uri-query-parser/blob/master/LICENSE (MIT License)
- * @version 2.0.0
+ * @version 1.0.0
  * @link    https://github.com/thephpleague/uri-query-parser
  *
  * For the full copyright and license information, please view the LICENSE
@@ -12,7 +12,7 @@
  */
 declare(strict_types=1);
 
-namespace League\Uri\Components\Parser;
+namespace League\Uri\Parser;
 
 use League\Uri\EncodingInterface;
 use TypeError;
@@ -20,12 +20,11 @@ use TypeError;
 /**
  * A class to parse a URI query string.
  *
- * @package    League\Uri
- * @subpackage League\Uri\Components
- * @author     Ignace Nyamagana Butera <nyamsprod@gmail.com>
- * @since      1.5.0
- * @see        https://tools.ietf.org/html/rfc3986#section-3.4
- * @internal   Use the function League\Uri\query_parse and League\Uri\query_extract instead
+ * @package  League\Uri
+ * @author   Ignace Nyamagana Butera <nyamsprod@gmail.com>
+ * @since    1.0.0
+ * @see      https://tools.ietf.org/html/rfc3986#section-3.4
+ * @internal Use the function League\Uri\query_parse and League\Uri\query_extract instead
  */
 final class QueryParser implements EncodingInterface
 {
@@ -66,15 +65,16 @@ final class QueryParser implements EncodingInterface
      * @param string $separator The query string separator
      * @param int    $enc_type  The query encoding algorithm
      *
-     * @throws Exception If the encoding type is invalid
-     * @throws Exception If the query string is invalid
+     * @throws TypeError       If the query string is a resource, an array or an object without the `__toString` method
+     * @throws Exception       If the query string is invalid
+     * @throws UnknownEncoding If the encoding type is invalid
      *
      * @return array
      */
     public function parse($query, string $separator = '&', int $enc_type = self::RFC3986_ENCODING): array
     {
         if (!isset(self::ENCODING_LIST[$enc_type])) {
-            throw new Exception(sprintf('Unsupported or Unknown Encoding: %s', $enc_type));
+            throw new UnknownEncoding(sprintf('Unsupported or Unknown Encoding: %s', $enc_type));
         }
 
         if (null === $query) {
@@ -95,7 +95,7 @@ final class QueryParser implements EncodingInterface
 
         static $pattern = '/[\x00-\x1f\x7f]/';
         if (preg_match($pattern, $query)) {
-            throw new Exception(sprintf('Invalid query string: %s', $query));
+            throw new InvalidArgument(sprintf('Invalid query string: %s', $query));
         }
 
         $this->separator = $separator;

@@ -4,7 +4,7 @@
  *
  * @author  Ignace Nyamagana Butera <nyamsprod@gmail.com>
  * @license https://github.com/thephpleague/uri-query-parser/blob/master/LICENSE (MIT License)
- * @version 2.0.0
+ * @version 1.0.0
  * @link    https://github.com/thephpleague/uri-query-parser
  *
  * For the full copyright and license information, please view the LICENSE
@@ -12,7 +12,7 @@
  */
 declare(strict_types=1);
 
-namespace League\Uri\Components\Parser;
+namespace League\Uri\Parser;
 
 use League\Uri\EncodingInterface;
 use Traversable;
@@ -21,11 +21,11 @@ use TypeError;
 /**
  * A class to build a URI query string from a collection of key/value pairs.
  *
- * @package    League\Uri
- * @author     Ignace Nyamagana Butera <nyamsprod@gmail.com>
- * @since      1.5.0
- * @see        https://tools.ietf.org/html/rfc3986#section-3.4
- * @internal   Use the function League\Uri\query_build instead
+ * @package  League\Uri
+ * @author   Ignace Nyamagana Butera <nyamsprod@gmail.com>
+ * @since    1.0.0
+ * @see      https://tools.ietf.org/html/rfc3986#section-3.4
+ * @internal Use the function League\Uri\query_build instead
  */
 final class QueryBuilder implements EncodingInterface
 {
@@ -79,7 +79,7 @@ final class QueryBuilder implements EncodingInterface
      * @param string $separator Query string separator
      * @param int    $enc_type  Query encoding type
      *
-     * @throws Exception If a query pair is malformed
+     * @throws InvalidArgument If a query pair is malformed
      *
      * @return null|string
      */
@@ -93,7 +93,7 @@ final class QueryBuilder implements EncodingInterface
         $res = [];
         foreach ($pairs as $pair) {
             if (!is_array($pair) || !isset($pair[0])) {
-                throw new Exception('A pair must be an array where the first element is the pair key and the second element the pair value');
+                throw new InvalidArgument('A pair must be an array where the first element is the pair key and the second element the pair value');
             }
             $res[] = $this->buildPair((string) $pair[0], $pair[1]);
         }
@@ -107,14 +107,14 @@ final class QueryBuilder implements EncodingInterface
      * @param string $separator
      * @param int    $enc_type
      *
-     * @throws Exception If the encoding type is invalid
+     * @throws UnknownEncoding If the encoding type is invalid
      *
      * @return callable
      */
     private function getEncoder(string $separator, int $enc_type): callable
     {
         if (!isset(self::ENCODING_LIST[$enc_type])) {
-            throw new Exception(sprintf('Unsupported or Unknown Encoding: %s', $enc_type));
+            throw new UnknownEncoding(sprintf('Unsupported or Unknown Encoding: %s', $enc_type));
         }
 
         $subdelim = str_replace(html_entity_decode($separator, ENT_HTML5, 'UTF-8'), '', "!$'()*+,;=:@?/&%");
@@ -174,7 +174,7 @@ final class QueryBuilder implements EncodingInterface
      * @param string $key   The pair key
      * @param mixed  $value The pair value
      *
-     * @throws Exception If the pair contains invalid value
+     * @throws InvalidArgument If the pair contains invalid value
      *
      * @return string
      */
@@ -197,7 +197,7 @@ final class QueryBuilder implements EncodingInterface
         }
 
         if (!is_scalar($value)) {
-            throw new Exception(sprintf('A pair value must a stringable object, a scalar or the null value `%s` given', gettype($value)));
+            throw new InvalidArgument(sprintf('A pair value must a stringable object, a scalar or the null value `%s` given', gettype($value)));
         }
 
         $value = (string) $value;

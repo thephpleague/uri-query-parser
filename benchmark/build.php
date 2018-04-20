@@ -1,7 +1,7 @@
 <?php
 
 require __DIR__.'/../src/EncodingInterface.php';
-require __DIR__.'/../src/Components/Parser/QueryBuilder.php';
+require __DIR__.'/../src/Parser/QueryBuilder.php';
 require __DIR__.'/../src/functions.php';
 
 $pairs = ['module' => ['home'], 'action' => ['show'], 'page' => [3]];

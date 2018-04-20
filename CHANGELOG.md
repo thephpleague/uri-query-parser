@@ -9,10 +9,10 @@ All Notable changes to League Uri Query Parser will be documented in this file
 - `League\Uri\query_parse`
 - `League\Uri\query_build`
 - `League\Uri\query_extract`
-- `League\Uri\Components\Parser\QueryBuilder`
-- `League\Uri\Components\Parser\QueryParser`
-- `League\Uri\Components\Parser\Exception`
-- `League\Uri\Components\Parser\UnsupportedEncoding`
+- `League\Uri\Parser\QueryBuilder`
+- `League\Uri\Parser\QueryParser`
+- `League\Uri\Parser\InvalidArgument`
+- `League\Uri\Parser\UnknownEncoding`
 
 ### Fixed
 

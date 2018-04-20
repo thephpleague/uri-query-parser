@@ -138,7 +138,7 @@ parse_str($query, $variables);
 // ];
 ```
 
-**If the encoding algorithm is unknown, the query string contains invalid characters, or the collection of key/value pairs is malformed the functions will throw an Exception.**
+**If the encoding algorithm is unknown, the query string contains invalid characters, or the collection of key/value pairs is malformed the functions will throw an `League\Uri\Parser\InvalidArgument` exception.**
 
 Contributing
 -------

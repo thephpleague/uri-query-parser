@@ -4,15 +4,15 @@
  *
  * @author  Ignace Nyamagana Butera <nyamsprod@gmail.com>
  * @license https://github.com/thephpleague/uri-query-parser/blob/master/LICENSE (MIT License)
- * @version 2.0.0
+ * @version 1.0.0
  * @link    https://github.com/thephpleague/uri-query-parser
  */
 declare(strict_types=1);
 
 namespace League\Uri;
 
-use League\Uri\Components\Parser\QueryBuilder;
-use League\Uri\Components\Parser\QueryParser;
+use League\Uri\Parser\QueryBuilder;
+use League\Uri\Parser\QueryParser;
 
 /**
  * Build a query string from a collection of key/value pairs.

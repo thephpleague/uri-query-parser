@@ -4,8 +4,9 @@ namespace LeagueTest\Uri;
 
 use ArrayIterator;
 use League\Uri;
-use League\Uri\Components\Parser\Exception;
 use League\Uri\EncodingInterface;
+use League\Uri\Parser\InvalidArgument;
+use League\Uri\Parser\UnknownEncoding;
 use PHPUnit\Framework\TestCase;
 use TypeError;
 
@@ -17,19 +18,19 @@ class FunctionsTest extends TestCase
 {
     public function testEncodingThrowsExceptionWithQueryParser()
     {
-        $this->expectException(Exception::class);
+        $this->expectException(UnknownEncoding::class);
         Uri\query_parse('foo=bar', '&', 42);
     }
 
     public function testInvalidQueryStringThrowsExceptionWithQueryParser()
     {
-        $this->expectException(Exception::class);
+        $this->expectException(InvalidArgument::class);
         Uri\query_parse("foo=bar\0");
     }
 
     public function testEncodingThrowsExceptionWithQueryBuilder()
     {
-        $this->expectException(Exception::class);
+        $this->expectException(UnknownEncoding::class);
         Uri\query_build(['foo' => 'bar'], '&', 42);
     }
 
@@ -406,13 +407,13 @@ class FunctionsTest extends TestCase
 
     public function testBuildQueryThrowsExceptionOnInvalidPair()
     {
-        $this->expectException(Exception::class);
+        $this->expectException(InvalidArgument::class);
         Uri\query_build(['foo', 'bar']);
     }
 
     public function testBuildQueryThrowsExceptionOnInvalidPairValue()
     {
-        $this->expectException(Exception::class);
+        $this->expectException(InvalidArgument::class);
         Uri\query_build([['foo', new ArrayIterator(['foo', 'bar', 'baz'])]]);
     }
 }
