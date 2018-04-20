@@ -41,6 +41,11 @@ final class QueryParser implements EncodingInterface
     /**
      * @internal
      */
+    const REGEXP_INVALID_CHARS = '/[\x00-\x1f\x7f]/';
+
+    /**
+     * @internal
+     */
     const REGEXP_ENCODED_PATTERN = ',%[A-Fa-f0-9]{2},';
 
     /**
@@ -103,8 +108,7 @@ final class QueryParser implements EncodingInterface
             return [['', null]];
         }
 
-        static $pattern = '/[\x00-\x1f\x7f]/';
-        if (\preg_match($pattern, $query)) {
+        if (\preg_match(self::REGEXP_INVALID_CHARS, $query)) {
             throw new InvalidArgument(\sprintf('Invalid query string: %s', $query));
         }
 
