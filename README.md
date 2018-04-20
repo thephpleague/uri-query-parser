@@ -60,7 +60,16 @@ $pairs = Uri\query_parse('module=home&action=show&page=😓');
 
 The returned array is a collection of key/value pairs. Each pair is represented as an array where the first element is the pair key and the second element the pair value. While the pair key is always a string, the pair value can be a string or the `null` value.
 
-By default `League\Uri\query_parse` will assume that the query separator is the `&` character and that the query string is encoded following [RFC3986](https://tools.ietf.org/html/rfc3986#section-3.4). But you can specify the separator character as well as the string encoding algorithm using its other two arguments.
+The `League\Uri\query_parse` :
+
+- accepts the `null` value, any scalar or object which is stringable;
+
+By default the function
+
+- assumes that the query separator is the `&` character;
+- assumes that the query string is encoded following [RFC3986](https://tools.ietf.org/html/rfc3986#section-3.4);
+
+But you can specify the separator character as well as the string encoding algorithm using its other two arguments.
 
 
 ```php
@@ -100,11 +109,18 @@ $pairs = Uri\query_build([
 // returns 'module=home|action=show|page=toto%20bar|action=hide';
 ```
 
+The `League\Uri\query_build` :
+
+- accepts any iterable structure containing a collection of key/pair pairs as describe in the returned array of the `League\Uri\query_parse` function.
+
 Just like with `League\Uri\query_parse`, you can specify the separator and the encoding algorithm to use.
 
 ### Extracting PHP variables
 
-While `League\Uri\query_parse` and `League\Uri\query_build` preserves the query string pairs content and order. If you want to extract PHP variables from the query string *à la* `parse_str` but without content mangling you can use `League\Uri\query_extract`. This functions takes the exact same argument as `League\Uri\query_parse`.
+`League\Uri\query_parse` and `League\Uri\query_build` preserve the query string pairs content and order. If you want to extract PHP variables from the query string *à la* `parse_str` you can use `League\Uri\query_extract`. The function:
+
+- takes the same paramters as `League\Uri\query_parse`
+- does not allow parameters key mangling in the returned array;
 
 ```php
 <?php
@@ -114,7 +130,7 @@ use League\Uri;
 $query = 'module=show&arr.test[1]=sid&arr test[4][two]=fred&module=hide';
 
 $params = Uri\query_extract($query, '&', PHP_QUERY_RFC1738);
-// returns [
+// $params contains [
 //     'module' = 'hide',
 //     'arr.test' => [
 //         1 => 'sid',
@@ -138,7 +154,24 @@ parse_str($query, $variables);
 // ];
 ```
 
-**If the encoding algorithm is unknown, the query string contains invalid characters, or the collection of key/value pairs is malformed the functions will throw an `League\Uri\Parser\InvalidArgument` exception.**
+### Exceptions
+
+- if the query string or the key/pair collection is invalid a `League\Uri\Parser\InvalidArgument` exception is thrown.
+- If the encoding algorithm is unknown a `League\Uri\Parser\UnknownEncoding` exception is thrown. the `UnknownEncoding` extends the `InvalidArgument` exception.
+
+```php
+<?php
+
+use League\Uri;
+use League\Uri\Parser\InvalidArgument;
+
+$query = 'module=show&arr.test[1]=sid&arr test[4][two]=fred&module=hide';
+try {
+	Uri\query_extract($query, '&', 42);
+} catch (InvalidArgument $e) {
+	//$e is an instanceof League\Uri\Parser\UnknownEncoding
+}
+```
 
 Contributing
 -------

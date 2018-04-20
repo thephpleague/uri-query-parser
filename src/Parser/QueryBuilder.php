@@ -60,7 +60,7 @@ final class QueryBuilder implements EncodingInterface
     /**
      * @internal
      */
-    const UNRESERVED_CHAR_REGEXP = '/[^A-Za-z0-9_\-\.~]/';
+    const REGEXP_UNRESERVED_CHAR = '/[^A-Za-z0-9_\-\.~]/';
 
     /**
      * @var callable
@@ -161,7 +161,7 @@ final class QueryBuilder implements EncodingInterface
      */
     private function encodeMatches(array $matches): string
     {
-        if (preg_match(self::UNRESERVED_CHAR_REGEXP, rawurldecode($matches[0]))) {
+        if (preg_match(self::REGEXP_UNRESERVED_CHAR, rawurldecode($matches[0]))) {
             return rawurlencode($matches[0]);
         }
 
@@ -180,7 +180,7 @@ final class QueryBuilder implements EncodingInterface
      */
     private function buildPair(string $key, $value): string
     {
-        if (preg_match(self::UNRESERVED_CHAR_REGEXP, $key)) {
+        if (preg_match(self::REGEXP_UNRESERVED_CHAR, $key)) {
             $key = ($this->encoder)($key);
         }
 
@@ -201,6 +201,6 @@ final class QueryBuilder implements EncodingInterface
         }
 
         $value = (string) $value;
-        return $key.'='.(preg_match(self::UNRESERVED_CHAR_REGEXP, $value) ? ($this->encoder)($value) : $value);
+        return $key.'='.(preg_match(self::REGEXP_UNRESERVED_CHAR, $value) ? ($this->encoder)($value) : $value);
     }
 }

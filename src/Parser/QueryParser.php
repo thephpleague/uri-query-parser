@@ -39,6 +39,16 @@ final class QueryParser implements EncodingInterface
     ];
 
     /**
+     * @internal
+     */
+    const REGEXP_ENCODED_PATTERN = ',%[A-Fa-f0-9]{2},';
+
+    /**
+     * @internal
+     */
+    const REGEXP_DECODED_PATTERN = ',%2[D|E]|3[0-9]|4[1-9|A-F]|5[0-9|A|F]|6[1-9|A-F]|7[0-9|E],i';
+
+    /**
      * @var int
      */
     private $enc_type;
@@ -114,22 +124,28 @@ final class QueryParser implements EncodingInterface
      */
     private function decode(string $str): string
     {
-        static $encoded_pattern = ',%[A-Fa-f0-9]{2},';
-        static $decoded_pattern = ',%2[D|E]|3[0-9]|4[1-9|A-F]|5[0-9|A|F]|6[1-9|A-F]|7[0-9|E],i';
-        $decoder = function (array $matches) use ($decoded_pattern) {
-            if (preg_match($decoded_pattern, $matches[0])) {
-                return strtoupper($matches[0]);
-            }
-
-            return rawurldecode($matches[0]);
-        };
-
-        $str = preg_replace_callback($encoded_pattern, $decoder, $str);
+        $str = preg_replace_callback(self::REGEXP_ENCODED_PATTERN, [$this, 'decodeMatch'], $str);
         if (self::RFC1738_ENCODING !== $this->enc_type || false === strpos($str, '+')) {
             return $str;
         }
 
         return str_replace('+', ' ', $str);
+    }
+
+    /**
+     * Decode a match string.
+     *
+     * @param array $matches
+     *
+     * @return string
+     */
+    private function decodeMatch(array $matches): string
+    {
+        if (preg_match(self::REGEXP_DECODED_PATTERN, $matches[0])) {
+            return strtoupper($matches[0]);
+        }
+
+        return rawurldecode($matches[0]);
     }
 
     /**
@@ -141,17 +157,16 @@ final class QueryParser implements EncodingInterface
      */
     private function parsePair(string $pair): array
     {
-        static $encoded_pattern = ',%[A-Fa-f0-9]{2},';
         list($key, $value) = explode('=', $pair, 2) + [1 => null];
         if (null !== $value) {
-            if (preg_match($encoded_pattern, $value)) {
+            if (preg_match(self::REGEXP_ENCODED_PATTERN, $value)) {
                 $value = $this->replace($this->decode($value), $this->encoded_separator, $this->separator);
             } elseif (self::RFC1738_ENCODING === $this->enc_type) {
                 $value = $this->replace($value, '+', ' ');
             }
         }
 
-        if (preg_match($encoded_pattern, $key)) {
+        if (preg_match(self::REGEXP_ENCODED_PATTERN, $key)) {
             $key = $this->decode($key);
         }
 
