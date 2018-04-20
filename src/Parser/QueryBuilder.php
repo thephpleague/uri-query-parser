@@ -86,19 +86,19 @@ final class QueryBuilder implements EncodingInterface
     public function build($pairs, string $separator = '&', int $enc_type = self::RFC3986_ENCODING)
     {
         $this->encoder = $this->getEncoder($separator, $enc_type);
-        if (!is_array($pairs) && !$pairs instanceof Traversable) {
+        if (!\is_array($pairs) && !$pairs instanceof Traversable) {
             throw new TypeError('the pairs must be an array or a Traversable object');
         }
 
         $res = [];
         foreach ($pairs as $pair) {
-            if (!is_array($pair) || !isset($pair[0])) {
+            if (!\is_array($pair) || !isset($pair[0])) {
                 throw new InvalidArgument('A pair must be an array where the first element is the pair key and the second element the pair value');
             }
             $res[] = $this->buildPair((string) $pair[0], $pair[1]);
         }
 
-        return empty($res) ? null : implode($separator, $res);
+        return empty($res) ? null : \implode($separator, $res);
     }
 
     /**
@@ -114,24 +114,24 @@ final class QueryBuilder implements EncodingInterface
     private function getEncoder(string $separator, int $enc_type): callable
     {
         if (!isset(self::ENCODING_LIST[$enc_type])) {
-            throw new UnknownEncoding(sprintf('Unsupported or Unknown Encoding: %s', $enc_type));
+            throw new UnknownEncoding(\sprintf('Unsupported or Unknown Encoding: %s', $enc_type));
         }
 
-        $subdelim = str_replace(html_entity_decode($separator, ENT_HTML5, 'UTF-8'), '', "!$'()*+,;=:@?/&%");
-        $regexp = '/(%[A-Fa-f0-9]{2})|[^A-Za-z0-9_\-\.~'.preg_quote($subdelim, '/').']+/u';
+        $subdelim = \str_replace(\html_entity_decode($separator, ENT_HTML5, 'UTF-8'), '', "!$'()*+,;=:@?/&%");
+        $regexp = '/(%[A-Fa-f0-9]{2})|[^A-Za-z0-9_\-\.~'.\preg_quote($subdelim, '/').']+/u';
 
         if (self::RFC3986_ENCODING == $enc_type) {
             return function (string $str) use ($regexp): string {
-                return preg_replace_callback($regexp, [$this, 'encodeMatches'], $str) ?? rawurlencode($str);
+                return \preg_replace_callback($regexp, [$this, 'encodeMatches'], $str) ?? \rawurlencode($str);
             };
         }
 
         if (self::RFC1738_ENCODING == $enc_type) {
             return function (string $str) use ($regexp): string {
-                return str_replace(
+                return \str_replace(
                     ['+', '~'],
                     ['%2B', '%7E'],
-                    preg_replace_callback($regexp, [$this, 'encodeMatches'], $str) ?? rawurlencode($str)
+                    \preg_replace_callback($regexp, [$this, 'encodeMatches'], $str) ?? \rawurlencode($str)
                 );
             };
         }
@@ -140,9 +140,9 @@ final class QueryBuilder implements EncodingInterface
             $pattern = self::CHARS_LIST['pattern'];
             $pattern[] = $separator;
             $replace = self::CHARS_LIST['replace'];
-            $replace[] = rawurlencode($separator);
+            $replace[] = \rawurlencode($separator);
             return function (string $str) use ($pattern, $replace): string {
-                return str_replace($pattern, $replace, $str);
+                return \str_replace($pattern, $replace, $str);
             };
         }
 
@@ -161,8 +161,8 @@ final class QueryBuilder implements EncodingInterface
      */
     private function encodeMatches(array $matches): string
     {
-        if (preg_match(self::REGEXP_UNRESERVED_CHAR, rawurldecode($matches[0]))) {
-            return rawurlencode($matches[0]);
+        if (\preg_match(self::REGEXP_UNRESERVED_CHAR, \rawurldecode($matches[0]))) {
+            return \rawurlencode($matches[0]);
         }
 
         return $matches[0];
@@ -180,7 +180,7 @@ final class QueryBuilder implements EncodingInterface
      */
     private function buildPair(string $key, $value): string
     {
-        if (preg_match(self::REGEXP_UNRESERVED_CHAR, $key)) {
+        if (\preg_match(self::REGEXP_UNRESERVED_CHAR, $key)) {
             $key = ($this->encoder)($key);
         }
 
@@ -188,19 +188,19 @@ final class QueryBuilder implements EncodingInterface
             return $key;
         }
 
-        if (is_bool($value)) {
+        if (\is_bool($value)) {
             return $key.'='.($value = $value ? 'true' : 'false');
         }
 
-        if (method_exists($value, '__toString')) {
+        if (\method_exists($value, '__toString')) {
             $value = (string) $value;
         }
 
-        if (!is_scalar($value)) {
-            throw new InvalidArgument(sprintf('A pair value must a stringable object, a scalar or the null value `%s` given', gettype($value)));
+        if (!\is_scalar($value)) {
+            throw new InvalidArgument(\sprintf('A pair value must a stringable object, a scalar or the null value `%s` given', \gettype($value)));
         }
 
         $value = (string) $value;
-        return $key.'='.(preg_match(self::REGEXP_UNRESERVED_CHAR, $value) ? ($this->encoder)($value) : $value);
+        return $key.'='.(\preg_match(self::REGEXP_UNRESERVED_CHAR, $value) ? ($this->encoder)($value) : $value);
     }
 }

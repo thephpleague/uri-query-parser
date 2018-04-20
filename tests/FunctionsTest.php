@@ -402,7 +402,7 @@ class FunctionsTest extends TestCase
     public function testBuildQueryThrowsExceptionOnWrongType()
     {
         $this->expectException(TypeError::class);
-        Uri\query_build(date_create());
+        Uri\query_build(\date_create());
     }
 
     public function testBuildQueryThrowsExceptionOnInvalidPair()

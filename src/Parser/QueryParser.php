@@ -84,18 +84,18 @@ final class QueryParser implements EncodingInterface
     public function parse($query, string $separator = '&', int $enc_type = self::RFC3986_ENCODING): array
     {
         if (!isset(self::ENCODING_LIST[$enc_type])) {
-            throw new UnknownEncoding(sprintf('Unsupported or Unknown Encoding: %s', $enc_type));
+            throw new UnknownEncoding(\sprintf('Unsupported or Unknown Encoding: %s', $enc_type));
         }
 
         if (null === $query) {
             return [];
         }
 
-        if (!is_scalar($query) && !method_exists($query, '__toString')) {
-            throw new TypeError(sprintf('The query must be a scalar or a stringable object `%s` given', gettype($query)));
+        if (!\is_scalar($query) && !\method_exists($query, '__toString')) {
+            throw new TypeError(\sprintf('The query must be a scalar or a stringable object `%s` given', \gettype($query)));
         }
 
-        if (!is_string($query)) {
+        if (!\is_string($query)) {
             $query = (string) $query;
         }
 
@@ -104,15 +104,15 @@ final class QueryParser implements EncodingInterface
         }
 
         static $pattern = '/[\x00-\x1f\x7f]/';
-        if (preg_match($pattern, $query)) {
-            throw new InvalidArgument(sprintf('Invalid query string: %s', $query));
+        if (\preg_match($pattern, $query)) {
+            throw new InvalidArgument(\sprintf('Invalid query string: %s', $query));
         }
 
         $this->separator = $separator;
-        $this->encoded_separator = rawurlencode($separator);
+        $this->encoded_separator = \rawurlencode($separator);
         $this->enc_type = $enc_type;
 
-        return array_map([$this, 'parsePair'], explode($separator, $query));
+        return \array_map([$this, 'parsePair'], \explode($separator, $query));
     }
 
     /**
@@ -124,12 +124,12 @@ final class QueryParser implements EncodingInterface
      */
     private function decode(string $str): string
     {
-        $str = preg_replace_callback(self::REGEXP_ENCODED_PATTERN, [$this, 'decodeMatch'], $str);
-        if (self::RFC1738_ENCODING !== $this->enc_type || false === strpos($str, '+')) {
+        $str = \preg_replace_callback(self::REGEXP_ENCODED_PATTERN, [$this, 'decodeMatch'], $str);
+        if (self::RFC1738_ENCODING !== $this->enc_type || false === \strpos($str, '+')) {
             return $str;
         }
 
-        return str_replace('+', ' ', $str);
+        return \str_replace('+', ' ', $str);
     }
 
     /**
@@ -141,11 +141,11 @@ final class QueryParser implements EncodingInterface
      */
     private function decodeMatch(array $matches): string
     {
-        if (preg_match(self::REGEXP_DECODED_PATTERN, $matches[0])) {
-            return strtoupper($matches[0]);
+        if (\preg_match(self::REGEXP_DECODED_PATTERN, $matches[0])) {
+            return \strtoupper($matches[0]);
         }
 
-        return rawurldecode($matches[0]);
+        return \rawurldecode($matches[0]);
     }
 
     /**
@@ -157,16 +157,16 @@ final class QueryParser implements EncodingInterface
      */
     private function parsePair(string $pair): array
     {
-        list($key, $value) = explode('=', $pair, 2) + [1 => null];
+        list($key, $value) = \explode('=', $pair, 2) + [1 => null];
         if (null !== $value) {
-            if (preg_match(self::REGEXP_ENCODED_PATTERN, $value)) {
+            if (\preg_match(self::REGEXP_ENCODED_PATTERN, $value)) {
                 $value = $this->replace($this->decode($value), $this->encoded_separator, $this->separator);
             } elseif (self::RFC1738_ENCODING === $this->enc_type) {
                 $value = $this->replace($value, '+', ' ');
             }
         }
 
-        if (preg_match(self::REGEXP_ENCODED_PATTERN, $key)) {
+        if (\preg_match(self::REGEXP_ENCODED_PATTERN, $key)) {
             $key = $this->decode($key);
         }
 
@@ -175,11 +175,11 @@ final class QueryParser implements EncodingInterface
 
     private function replace(string $value, string $pattern, string $replace)
     {
-        if (false === strpos($value, $pattern)) {
+        if (false === \strpos($value, $pattern)) {
             return $value;
         }
 
-        return str_replace($pattern, $replace, $value);
+        return \str_replace($pattern, $replace, $value);
     }
 
     /**
@@ -206,7 +206,7 @@ final class QueryParser implements EncodingInterface
                 $value[1] = '';
             }
 
-            $this->extractPhpVariable(trim((string) $value[0]), rawurldecode((string) $value[1]), $data);
+            $this->extractPhpVariable(\trim((string) $value[0]), \rawurldecode((string) $value[1]), $data);
         }
 
         return $data;
@@ -243,29 +243,29 @@ final class QueryParser implements EncodingInterface
             return;
         }
 
-        if (false === ($left_bracket_pos = strpos($name, '['))) {
+        if (false === ($left_bracket_pos = \strpos($name, '['))) {
             $data[$name] = $value;
             return;
         }
 
-        if (false === ($right_bracket_pos = strpos($name, ']', $left_bracket_pos))) {
+        if (false === ($right_bracket_pos = \strpos($name, ']', $left_bracket_pos))) {
             $data[$name] = $value;
             return;
         }
 
-        $key = substr($name, 0, $left_bracket_pos);
-        if (!array_key_exists($key, $data) || !is_array($data[$key])) {
+        $key = \substr($name, 0, $left_bracket_pos);
+        if (!\array_key_exists($key, $data) || !\is_array($data[$key])) {
             $data[$key] = [];
         }
 
-        $index = substr($name, $left_bracket_pos + 1, $right_bracket_pos - $left_bracket_pos - 1);
+        $index = \substr($name, $left_bracket_pos + 1, $right_bracket_pos - $left_bracket_pos - 1);
         if ('' === $index) {
             $data[$key][] = $value;
             return;
         }
 
-        $remaining = substr($name, $right_bracket_pos + 1);
-        if ('[' !== substr($remaining, 0, 1) || false === strpos($remaining, ']', 1)) {
+        $remaining = \substr($name, $right_bracket_pos + 1);
+        if ('[' !== \substr($remaining, 0, 1) || false === \strpos($remaining, ']', 1)) {
             $remaining = '';
         }
 
