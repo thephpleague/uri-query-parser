@@ -85,17 +85,13 @@ final class QueryBuilder implements EncodingInterface
      */
     public function build($pairs, string $separator = '&', int $enc_type = self::RFC3986_ENCODING)
     {
-        $this->encoder = $this->getEncoder($separator, $enc_type);
         if (!\is_array($pairs) && !$pairs instanceof Traversable) {
-            throw new TypeError('the pairs must be an array or a Traversable object');
+            throw new TypeError('the pairs collection must be an array or a Traversable object');
         }
-
+        $this->encoder = $this->getEncoder($separator, $enc_type);
         $res = [];
         foreach ($pairs as $pair) {
-            if (!\is_array($pair) || !isset($pair[0])) {
-                throw new InvalidArgument('A pair must be an array where the first element is the pair key and the second element the pair value');
-            }
-            $res[] = $this->buildPair((string) $pair[0], $pair[1]);
+            $res[] = $this->buildPair($pair);
         }
 
         return empty($res) ? null : \implode($separator, $res);
@@ -171,36 +167,32 @@ final class QueryBuilder implements EncodingInterface
     /**
      * Build a query key/pair association.
      *
-     * @param string $key   The pair key
-     * @param mixed  $value The pair value
+     * @param array $pair
      *
      * @throws InvalidArgument If the pair contains invalid value
      *
      * @return string
      */
-    private function buildPair(string $key, $value): string
+    private function buildPair(array $pair): string
     {
-        if (\preg_match(self::REGEXP_UNRESERVED_CHAR, $key)) {
-            $key = ($this->encoder)($key);
+        list($key, $value) = \array_values($pair) + [1 => null];
+        if (null === $key || (!\is_scalar($key) && !\method_exists($key, '__toString'))) {
+            throw new InvalidArgument(\sprintf('A pair key must a stringable object or a scalar value `%s` given', \gettype($key)));
         }
 
+        if (null !== $value && !\is_scalar($value) && !\method_exists($value, '__toString')) {
+            throw new InvalidArgument(\sprintf('A pair value must a stringable object, a scalar or the null value `%s` given', \gettype($value)));
+        }
+
+        $key = ($this->encoder)((string) $key);
         if (null === $value) {
             return $key;
         }
 
         if (\is_bool($value)) {
-            return $key.'='.($value = $value ? 'true' : 'false');
+            return $key.'='.($value ? '1' : '0');
         }
 
-        if (\method_exists($value, '__toString')) {
-            $value = (string) $value;
-        }
-
-        if (!\is_scalar($value)) {
-            throw new InvalidArgument(\sprintf('A pair value must a stringable object, a scalar or the null value `%s` given', \gettype($value)));
-        }
-
-        $value = (string) $value;
-        return $key.'='.(\preg_match(self::REGEXP_UNRESERVED_CHAR, $value) ? ($this->encoder)($value) : $value);
+        return $key.'='.($this->encoder)((string) $value);
     }
 }

@@ -16,7 +16,7 @@ All Notable changes to League Uri Query Parser will be documented in this file
 
 ### Fixed
 
-- `QueryParser` and `QueryBuilder` query structure is changed from the URI component package to preserve query pair order
+- `QueryParser` and `QueryBuilder` query structure is changed from the URI component package to preserve query pair order.
 
 ### Deprecated
 

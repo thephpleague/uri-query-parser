@@ -288,10 +288,17 @@ class FunctionsTest extends TestCase
             ],
             'identical keys' => [
                 'pairs' => new ArrayIterator([['a', true] , ['a', '2']]),
-                'expected_rfc1738' => 'a=true&a=2',
-                'expected_rfc3986' => 'a=true&a=2',
-                'expected_rfc3987' => 'a=true&a=2',
-                'expected_no_encoding' => 'a=true&a=2',
+                'expected_rfc1738' => 'a=1&a=2',
+                'expected_rfc3986' => 'a=1&a=2',
+                'expected_rfc3987' => 'a=1&a=2',
+                'expected_no_encoding' => 'a=1&a=2',
+            ],
+            'identical keys with associative array' => [
+                'pairs' => new ArrayIterator([['key' => 'a', 'value' => true] , ['key' => 'a', 'value' => '2']]),
+                'expected_rfc1738' => 'a=1&a=2',
+                'expected_rfc3986' => 'a=1&a=2',
+                'expected_rfc3987' => 'a=1&a=2',
+                'expected_no_encoding' => 'a=1&a=2',
             ],
             'no value' => [
                 'pairs' => [['a', null], ['b', null]],
@@ -405,15 +412,26 @@ class FunctionsTest extends TestCase
         Uri\query_build(\date_create());
     }
 
-    public function testBuildQueryThrowsExceptionOnInvalidPair()
+    /**
+     * @dataProvider failedBuilderProvider
+     *
+     * @param mixed $pairs
+     */
+    public function testBuildQueryThrowsException($pairs)
     {
         $this->expectException(InvalidArgument::class);
-        Uri\query_build(['foo', 'bar']);
+        Uri\query_build($pairs);
     }
 
-    public function testBuildQueryThrowsExceptionOnInvalidPairValue()
+    public function failedBuilderProvider()
     {
-        $this->expectException(InvalidArgument::class);
-        Uri\query_build([['foo', new ArrayIterator(['foo', 'bar', 'baz'])]]);
+        return [
+            'The pair key must be stringable' => [
+                'pair' => [[\date_create(), 'bar']],
+            ],
+            'The pair value must be stringable or null' => [
+                'pair' => [['foo', \date_create()]],
+            ],
+        ];
     }
 }

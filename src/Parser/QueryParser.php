@@ -185,16 +185,12 @@ final class QueryParser implements EncodingInterface
      */
     public function extract($str, string $separator = '&', int $enc_type = self::RFC3986_ENCODING): array
     {
-        $data = [];
-        foreach ($this->parse($str, $separator, $enc_type) as $value) {
-            if (null === ($value[1] ?? null)) {
-                $value[1] = '';
-            }
-
-            $this->extractPhpVariable(\trim((string) $value[0]), \rawurldecode((string) $value[1]), $data);
+        $variables = [];
+        foreach ($this->parse($str, $separator, $enc_type) as $pair) {
+            $this->extractPhpVariable(\trim($pair[0]), \rawurldecode((string) $pair[1]), $variables);
         }
 
-        return $data;
+        return $variables;
     }
 
     /**
