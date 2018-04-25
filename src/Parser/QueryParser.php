@@ -15,7 +15,6 @@ declare(strict_types=1);
 namespace League\Uri\Parser;
 
 use League\Uri\EncodingInterface;
-use Traversable;
 use TypeError;
 
 /**
@@ -60,16 +59,6 @@ final class QueryParser implements EncodingInterface
     private $enc_type;
 
     /**
-     * @var string
-     */
-    private $separator;
-
-    /**
-     * @var string
-     */
-    private $encoded_separator;
-
-    /**
      * Parse a query string into an associative array.
      *
      * Multiple identical key will generate an array. This function
@@ -110,11 +99,14 @@ final class QueryParser implements EncodingInterface
             throw new InvalidArgument(\sprintf('Invalid query string: %s', $query));
         }
 
-        $this->separator = $separator;
-        $this->encoded_separator = \rawurlencode($separator);
         $this->enc_type = $enc_type;
 
-        return \array_map([$this, 'parsePair'], \explode($separator, $query));
+        $pairs = [];
+        foreach (\explode($separator, $query) as $pair) {
+            $pairs[] = $this->parsePair($pair);
+        }
+
+        return $pairs;
     }
 
     /**
@@ -127,29 +119,27 @@ final class QueryParser implements EncodingInterface
     private function parsePair(string $pair): array
     {
         list($key, $value) = \explode('=', $pair, 2) + [1 => null];
-        $key = $this->decode($key);
-        if (null !== $value) {
-            $value = $this->decode($value);
+        if (\preg_match(self::REGEXP_ENCODED_PATTERN, $key)) {
+            $key = \preg_replace_callback(self::REGEXP_ENCODED_PATTERN, [$this, 'decodeMatch'], $key);
+        }
+
+        if (self::RFC1738_ENCODING === $this->enc_type && false !== \strpos($key, '+')) {
+            $key = \str_replace('+', ' ', $key);
+        }
+
+        if (null === $value) {
+            return [$key, $value];
+        }
+
+        if (\preg_match(self::REGEXP_ENCODED_PATTERN, $value)) {
+            $value = \preg_replace_callback(self::REGEXP_ENCODED_PATTERN, [$this, 'decodeMatch'], $value);
+        }
+
+        if (self::RFC1738_ENCODING === $this->enc_type && false !== \strpos($value, '+')) {
+            $value = \str_replace('+', ' ', $value);
         }
 
         return [$key, $value];
-    }
-
-    /**
-     * Decode a component according to RFC3986.
-     *
-     * @param string $str
-     *
-     * @return string
-     */
-    private function decode(string $str): string
-    {
-        $str = \preg_replace_callback(self::REGEXP_ENCODED_PATTERN, [$this, 'decodeMatch'], $str);
-        if (self::RFC1738_ENCODING === $this->enc_type) {
-            return \str_replace('+', ' ', $str);
-        }
-
-        return $str;
     }
 
     /**
@@ -188,70 +178,10 @@ final class QueryParser implements EncodingInterface
     {
         $variables = [];
         foreach ($this->parse($str, $separator, $enc_type) as $pair) {
-            $this->extractPhpVariable(\trim($pair[0]), \rawurldecode((string) $pair[1]), $variables);
+            $this->extractPhpVariable($pair[0], \rawurldecode((string) $pair[1]), $variables);
         }
 
         return $variables;
-    }
-
-    /**
-     * Convert a collection of key/pair value into PHP variables.
-     *
-     * @param mixed $pairs
-     *
-     * @throws TypeError If the pair is not iterable
-     *
-     * @return array
-     */
-    public function convert($pairs): array
-    {
-        if (!\is_array($pairs) && !$pairs instanceof Traversable) {
-            throw new TypeError('the pairs collection must be an array or a Traversable object');
-        }
-
-        $variables = [];
-        foreach ($pairs as $pair) {
-            $pair = $this->filterPair($pair);
-            $this->extractPhpVariable($pair[0], $pair[1], $variables);
-        }
-
-        return $variables;
-    }
-
-    /**
-     * Filter the submitted key/pair array.
-     *
-     * @param array $pair
-     *
-     * @throws InvalidArgument If the pair is invalid
-     *
-     * @return array
-     */
-    private function filterPair(array $pair)
-    {
-        if (empty($pair)) {
-            throw new InvalidArgument('A pair can not be empty');
-        }
-
-        list($key, $value) = \array_values($pair) + [1 => null];
-        if (null === $key || (!\is_scalar($key) && !\method_exists($key, '__toString'))) {
-            throw new InvalidArgument(\sprintf('A pair key must be a stringable object or a scalar value `%s` given', \gettype($key)));
-        }
-
-        $key = \trim((string) $key);
-        if (null === $value) {
-            return [$key, ''];
-        }
-
-        if (\is_bool($value)) {
-            return [$key, $value ? '1' : '0'];
-        }
-
-        if (\is_scalar($value) || \method_exists($value, '__toString')) {
-            return [$key, \rawurldecode((string) $value)];
-        }
-
-        throw new InvalidArgument(\sprintf('A pair value must a stringable object, a scalar or the null value `%s` given', \gettype($value)));
     }
 
     /**
@@ -266,6 +196,7 @@ final class QueryParser implements EncodingInterface
      * <li>if there's a mismatch in bracket usage the remaining part is dropped</li>
      * <li>“.” and “ ” are not converted to “_”</li>
      * <li>If there is no “]”, then the first “[” is not converted to becomes an “_”</li>
+     * <li>no whitespace trimming is done on the key value</li>
      * </ul>
      *
      * @see https://php.net/parse_str

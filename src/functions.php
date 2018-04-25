@@ -73,22 +73,3 @@ function query_extract($query, string $separator = '&', int $enc_type = PHP_QUER
 
     return $parser->extract($query, $separator, $enc_type);
 }
-
-
-/**
- * Convert a collection of key/pair values into PHP variables.
- *
- * @see QueryParser::convert
- *
- * @param mixed $pairs The query pairs
- *
- * @return array
- */
-function pairs_to_params($pairs): array
-{
-    static $parser;
-
-    $parser = $parser ?? new QueryParser();
-
-    return $parser->convert($pairs);
-}

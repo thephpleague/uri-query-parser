@@ -31,19 +31,19 @@ class FunctionsTest extends TestCase
     public function testEncodingThrowsExceptionWithQueryBuilder()
     {
         $this->expectException(UnknownEncoding::class);
-        Uri\query_build(['foo' => 'bar'], '&', 42);
+        Uri\query_build([['foo', 'bar']], '&', 42);
+    }
+
+    public function testBuildThrowsExceptionWithQueryBuilder()
+    {
+        $this->expectException(InvalidArgument::class);
+        Uri\query_build([['foo', 'boo' => 'bar']]);
     }
 
     public function testWrongTypeThrowExceptionParseQuery()
     {
         $this->expectException(TypeError::class);
         Uri\query_parse(['foo=bar'], '&', PHP_QUERY_RFC1738);
-    }
-
-    public function testWrongTypeThrowExceptionConvert()
-    {
-        $this->expectException(TypeError::class);
-        Uri\pairs_to_params((object) []);
     }
 
     /**
@@ -55,7 +55,6 @@ class FunctionsTest extends TestCase
     public function testExtractQuery($query, $expectedData)
     {
         $this->assertSame($expectedData, Uri\query_extract($query));
-        $this->assertSame($expectedData, Uri\pairs_to_params(Uri\query_parse($query)));
     }
 
     public function extractQueryProvider()
@@ -146,9 +145,9 @@ class FunctionsTest extends TestCase
                 PHP_QUERY_RFC3986,
             ],
             'rfc1738 without hexaencoding' => [
-                'toto=foo%2bbar',
+                'to+to=foo%2bbar',
                 '&',
-                [['toto', 'foo bar']],
+                [['to to', 'foo bar']],
                 PHP_QUERY_RFC1738,
             ],
             'null value' => [
@@ -300,13 +299,6 @@ class FunctionsTest extends TestCase
                 'expected_rfc3987' => 'a=1&a=2',
                 'expected_no_encoding' => 'a=1&a=2',
             ],
-            'identical keys with associative array' => [
-                'pairs' => new ArrayIterator([['key' => 'a', 'value' => true] , ['key' => 'a', 'value' => '2']]),
-                'expected_rfc1738' => 'a=1&a=2',
-                'expected_rfc3986' => 'a=1&a=2',
-                'expected_rfc3987' => 'a=1&a=2',
-                'expected_no_encoding' => 'a=1&a=2',
-            ],
             'no value' => [
                 'pairs' => [['a', null], ['b', null]],
                 'expected_rfc1738' => 'a&b',
@@ -423,11 +415,12 @@ class FunctionsTest extends TestCase
      * @dataProvider failedBuilderProvider
      *
      * @param mixed $pairs
+     * @param int   $enc_type
      */
-    public function testBuildQueryThrowsException($pairs)
+    public function testBuildQueryThrowsException($pairs, $enc_type)
     {
         $this->expectException(InvalidArgument::class);
-        Uri\query_build($pairs);
+        Uri\query_build($pairs, '&', $enc_type);
     }
 
     public function failedBuilderProvider()
@@ -435,32 +428,28 @@ class FunctionsTest extends TestCase
         return [
             'The collection can not contain empty pair' => [
                 [[]],
+                PHP_QUERY_RFC1738,
             ],
             'The pair key must be stringable' => [
                 [[\date_create(), 'bar']],
+                PHP_QUERY_RFC1738,
             ],
-            'The pair value must be stringable or null' => [
+            'The pair value must be stringable or null - rfc3986/rfc1738' => [
                 [['foo', \date_create()]],
+                PHP_QUERY_RFC3986,
+            ],
+            'The pair value must be stringable or null - rfc3987' => [
+                [['foo', \date_create()]],
+                EncodingInterface::RFC3987_ENCODING,
+            ],
+            'The pair value must be stringable or null - raw' => [
+                [['foo', \date_create()]],
+                EncodingInterface::NO_ENCODING,
+            ],
+            'identical keys with associative array' => [
+                new ArrayIterator([['key' => 'a', 'value' => true] , ['key' => 'a', 'value' => '2']]),
+                PHP_QUERY_RFC3986,
             ],
         ];
-    }
-
-    /**
-     * @dataProvider failedBuilderProvider
-     *
-     * @param mixed $pairs
-     */
-    public function testConvertQueryThrowsException($pairs)
-    {
-        $this->expectException(InvalidArgument::class);
-        Uri\pairs_to_params($pairs);
-    }
-
-    public function testConvertBoolean()
-    {
-        $this->assertSame(['foo' => '1', 'bar' => '0'], Uri\pairs_to_params([
-            ['foo', true],
-            ['bar', false],
-        ]));
     }
 }
