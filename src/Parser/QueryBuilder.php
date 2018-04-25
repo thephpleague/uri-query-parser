@@ -89,9 +89,9 @@ final class QueryBuilder implements EncodingInterface
      *
      *    - it does not modify parameters keys
      *
-     * @param mixed  $pairs     Query pairs
-     * @param string $separator Query string separator
-     * @param int    $enc_type  Query encoding type
+     * @param mixed  $pairs     Collection of key/value pairs as array
+     * @param string $separator query string separator
+     * @param int    $enc_type  query encoding type
      *
      * @throws InvalidArgument If a query pair is malformed
      *
@@ -163,13 +163,30 @@ final class QueryBuilder implements EncodingInterface
             throw new InvalidArgument('A pair must be a sequential array starting at `0` and containing two elements.');
         }
 
-        if (\is_scalar($pair[0]) || \method_exists($pair[0], '__toString')) {
-            $pair[0] = (string) $pair[0];
+        if (!\is_scalar($pair[0])) {
+            throw new InvalidArgument(\sprintf('A pair key must be a scalar value `%s` given.', \gettype($pair[0])));
+        }
+
+        if (\is_bool($pair[0])) {
+            $pair[0] = (int) $pair[0];
+        }
+
+        $pair[0] = (string) $pair[0];
+        if (null === $pair[1]) {
+            return $pair;
+        }
+
+        if (\is_bool($pair[1])) {
+            $pair[1] = (int) $pair[1];
+        }
+
+        if (\is_scalar($pair[1])) {
+            $pair[1] = (string) $pair[1];
 
             return $pair;
         }
 
-        throw new InvalidArgument(\sprintf('A pair key must be a scalar value or a stringable object `%s` given.', \gettype($pair[0])));
+        throw new InvalidArgument(\sprintf('A pair value must be a scalar value or the null value, `%s` given.', \gettype($pair[1])));
     }
 
     /**
@@ -191,20 +208,11 @@ final class QueryBuilder implements EncodingInterface
             return $pair[0];
         }
 
-        if (\is_bool($pair[1])) {
-            return $pair[0].'='.($pair[1] ? '1' : '0');
-        }
-
-        if (\is_scalar($pair[1]) || \method_exists($pair[1], '__toString')) {
-            $pair[1] = (string) $pair[1];
-            if (\preg_match($this->regexp, $pair[1])) {
-                $pair[1] = \preg_replace_callback($this->regexp, [$this, 'encodeMatches'], $pair[1]);
-            }
-
+        if (!\preg_match($this->regexp, $pair[1])) {
             return $pair[0].'='.$pair[1];
         }
 
-        throw new InvalidArgument(\sprintf('A pair value must be a scalar value, a stringable object  or the null value, `%s` given.', \gettype($pair[1])));
+        return $pair[0].'='.\preg_replace_callback($this->regexp, [$this, 'encodeMatches'], $pair[1]);
     }
 
     /**
@@ -237,20 +245,12 @@ final class QueryBuilder implements EncodingInterface
      */
     private function buildRFC3987Pair(array $pair): string
     {
-        $key = \str_replace($this->pattern, $this->replace, $pair[0]);
+        $pair[0] = \str_replace($this->pattern, $this->replace, $pair[0]);
         if (null === $pair[1]) {
-            return $key;
+            return $pair[0];
         }
 
-        if (\is_bool($pair[1])) {
-            return $key.'='.($pair[1] ? '1' : '0');
-        }
-
-        if (\is_scalar($pair[1]) || \method_exists($pair[1], '__toString')) {
-            return $key.'='.\str_replace($this->pattern, $this->replace, (string) $pair[1]);
-        }
-
-        throw new InvalidArgument(\sprintf('A pair value must be a scalar value, a stringable object  or the null value, `%s` given.', \gettype($pair[1])));
+        return $pair[0].'='.\str_replace($this->pattern, $this->replace, $pair[1]);
     }
 
     /**
@@ -268,14 +268,6 @@ final class QueryBuilder implements EncodingInterface
             return $pair[0];
         }
 
-        if (\is_bool($pair[1])) {
-            return $pair[0].'='.($pair[1] ? '1' : '0');
-        }
-
-        if (\is_scalar($pair[1]) || \method_exists($pair[1], '__toString')) {
-            return $pair[0].'='.(string) $pair[1];
-        }
-
-        throw new InvalidArgument(\sprintf('A pair value must be a scalar value, a stringable object  or the null value, `%s` given.', \gettype($pair[1])));
+        return $pair[0].'='.$pair[1];
     }
 }

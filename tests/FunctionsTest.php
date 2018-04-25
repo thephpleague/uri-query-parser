@@ -293,11 +293,11 @@ class FunctionsTest extends TestCase
                 'expected_no_encoding' => null,
             ],
             'identical keys' => [
-                'pairs' => new ArrayIterator([['a', true] , ['a', '2']]),
-                'expected_rfc1738' => 'a=1&a=2',
-                'expected_rfc3986' => 'a=1&a=2',
-                'expected_rfc3987' => 'a=1&a=2',
-                'expected_no_encoding' => 'a=1&a=2',
+                'pairs' => new ArrayIterator([['a', true] , [true, 'a']]),
+                'expected_rfc1738' => 'a=1&1=a',
+                'expected_rfc3986' => 'a=1&1=a',
+                'expected_rfc3987' => 'a=1&1=a',
+                'expected_no_encoding' => 'a=1&1=a',
             ],
             'no value' => [
                 'pairs' => [['a', null], ['b', null]],
@@ -312,18 +312,6 @@ class FunctionsTest extends TestCase
                 'expected_rfc3986' => 'a=&b=',
                 'expected_rfc3987' => 'a=&b=',
                 'expected_no_encoding' => 'a=&b=',
-            ],
-            'php array' => [
-                'pairs' => [['a[]', new class() {
-                    public function __toString()
-                    {
-                        return '1';
-                    }
-                }], ['a[]', '2']],
-                'expected_rfc1738' => 'a%5B%5D=1&a%5B%5D=2',
-                'expected_rfc3986' => 'a%5B%5D=1&a%5B%5D=2',
-                'expected_rfc3987' => 'a[]=1&a[]=2',
-                'expected_no_encoding' => 'a[]=1&a[]=2',
             ],
             'php array (1)' => [
                 'pairs' => [['a[]', '1%a6'], ['a[]', '2']],
@@ -449,6 +437,10 @@ class FunctionsTest extends TestCase
             'identical keys with associative array' => [
                 new ArrayIterator([['key' => 'a', 'value' => true] , ['key' => 'a', 'value' => '2']]),
                 PHP_QUERY_RFC3986,
+            ],
+            'Object' => [
+                [['a[]', (object) '1']],
+                PHP_QUERY_RFC1738,
             ],
         ];
     }
