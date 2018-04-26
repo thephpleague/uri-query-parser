@@ -81,6 +81,7 @@ final class QueryParser implements EncodingInterface
         if (!isset(self::ENCODING_LIST[$enc_type])) {
             throw new UnknownEncoding(\sprintf('Unknown Encoding: %s', $enc_type));
         }
+        $this->enc_type = $enc_type;
 
         if (null === $query) {
             return [];
@@ -98,8 +99,6 @@ final class QueryParser implements EncodingInterface
         if (\preg_match(self::REGEXP_INVALID_CHARS, $query)) {
             throw new InvalidArgument(\sprintf('Invalid query string: %s', $query));
         }
-
-        $this->enc_type = $enc_type;
 
         $pairs = [];
         foreach (\explode($separator, $query) as $pair) {

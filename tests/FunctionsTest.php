@@ -307,11 +307,11 @@ class FunctionsTest extends TestCase
                 'expected_no_encoding' => 'a&b',
             ],
             'empty value' => [
-                'pairs' => [['a', ''], ['b', '']],
-                'expected_rfc1738' => 'a=&b=',
-                'expected_rfc3986' => 'a=&b=',
-                'expected_rfc3987' => 'a=&b=',
-                'expected_no_encoding' => 'a=&b=',
+                'pairs' => [['a', ''], ['b', 1.3]],
+                'expected_rfc1738' => 'a=&b=1.3',
+                'expected_rfc3986' => 'a=&b=1.3',
+                'expected_rfc3987' => 'a=&b=1.3',
+                'expected_no_encoding' => 'a=&b=1.3',
             ],
             'php array (1)' => [
                 'pairs' => [['a[]', '1%a6'], ['a[]', '2']],

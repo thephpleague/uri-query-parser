@@ -126,67 +126,103 @@ final class QueryBuilder implements EncodingInterface
 
         $res = [];
         foreach ($pairs as $pair) {
-            $res[] = $this->$method($this->filterPair($pair));
+            if (\array_keys($pair) !== [0, 1]) {
+                throw new InvalidArgument('A pair must be a sequential array starting at `0` and containing two elements.');
+            }
+
+            if (!\is_scalar($pair[0])) {
+                throw new InvalidArgument(\sprintf('A pair key must be a scalar value `%s` given.', \gettype($pair[0])));
+            }
+
+            if (\is_bool($pair[0])) {
+                $pair[0] = (int) $pair[0];
+            }
+
+            $pair[0] = (string) $pair[0];
+            $res[] = $this->$method($pair);
         }
 
         return empty($res) ? null : \implode($separator, $res);
     }
 
     /**
-     * Encode Matches sequence.
-     *
-     * @param array $matches
-     *
-     * @return string
-     */
-    private function encodeMatches(array $matches): string
-    {
-        if (\preg_match(self::REGEXP_UNRESERVED_CHAR, \rawurldecode($matches[0]))) {
-            return \rawurlencode($matches[0]);
-        }
-
-        return $matches[0];
-    }
-
-    /**
-     * Filter the submitted pair.
+     * Build a raw query key/value pair association.
      *
      * @param array $pair
      *
-     * @throws InvalidArgument if the pair is invalid
+     * @throws InvalidArgument If the pair is invalid
      *
-     * @return array
+     * @return string
      */
-    private function filterPair(array $pair): array
+    private function buildRawPair(array $pair): string
     {
-        if (\array_keys($pair) !== [0, 1]) {
-            throw new InvalidArgument('A pair must be a sequential array starting at `0` and containing two elements.');
+        if (\is_string($pair[1])) {
+            return $pair[0].'='.$pair[1];
         }
 
-        if (!\is_scalar($pair[0])) {
-            throw new InvalidArgument(\sprintf('A pair key must be a scalar value `%s` given.', \gettype($pair[0])));
-        }
-
-        if (\is_bool($pair[0])) {
-            $pair[0] = (int) $pair[0];
-        }
-
-        $pair[0] = (string) $pair[0];
-        if (null === $pair[1]) {
-            return $pair;
+        if (\is_numeric($pair[1])) {
+            return $pair[0].'='.$pair[1];
         }
 
         if (\is_bool($pair[1])) {
-            $pair[1] = (int) $pair[1];
+            return $pair[0].'='.(int) $pair[1];
         }
 
-        if (\is_scalar($pair[1])) {
-            $pair[1] = (string) $pair[1];
-
-            return $pair;
+        if (null === $pair[1]) {
+            return $pair[0];
         }
 
         throw new InvalidArgument(\sprintf('A pair value must be a scalar value or the null value, `%s` given.', \gettype($pair[1])));
+    }
+
+    /**
+     * Build a RFC3987 query key/value pair association.
+     *
+     * @param array $pair
+     *
+     * @throws InvalidArgument If the pair is invalid
+     *
+     * @return string
+     */
+    private function buildRFC3987Pair(array $pair): string
+    {
+        $pair[0] = \str_replace($this->pattern, $this->replace, $pair[0]);
+        if (\is_string($pair[1])) {
+            return $pair[0].'='.\str_replace($this->pattern, $this->replace, $pair[1]);
+        }
+
+        if (\is_numeric($pair[1])) {
+            return $pair[0].'='.$pair[1];
+        }
+
+        if (\is_bool($pair[1])) {
+            return $pair[0].'='.(int) $pair[1];
+        }
+
+        if (null === $pair[1]) {
+            return $pair[0];
+        }
+
+        throw new InvalidArgument(\sprintf('A pair value must be a scalar value or the null value, `%s` given.', \gettype($pair[1])));
+    }
+
+    /**
+     * Build a RFC1738 query key/value pair association.
+     *
+     * @param array $pair
+     *
+     * @throws InvalidArgument If the pair is invalid
+     *
+     * @return string
+     */
+    private function buildRFC1738Pair(array $pair): string
+    {
+        $str = $this->buildRFC3986Pair($pair);
+        if (\strpos($str, '+') !== false || \strpos($str, '~') !== false) {
+            return \str_replace(['+', '~'], ['%2B', '%7E'], $str);
+        }
+
+        return $str;
     }
 
     /**
@@ -204,70 +240,42 @@ final class QueryBuilder implements EncodingInterface
             $pair[0] = \preg_replace_callback($this->regexp, [$this, 'encodeMatches'], $pair[0]);
         }
 
-        if (null === $pair[1]) {
-            return $pair[0];
-        }
+        if (\is_string($pair[1])) {
+            if (\preg_match($this->regexp, $pair[1])) {
+                return $pair[0].'='.\preg_replace_callback($this->regexp, [$this, 'encodeMatches'], $pair[1]);
+            }
 
-        if (!\preg_match($this->regexp, $pair[1])) {
             return $pair[0].'='.$pair[1];
         }
 
-        return $pair[0].'='.\preg_replace_callback($this->regexp, [$this, 'encodeMatches'], $pair[1]);
-    }
-
-    /**
-     * Build a RFC1738 query key/value pair association.
-     *
-     * @param array $pair
-     *
-     * @throws InvalidArgument If the pair is invalid
-     *
-     * @return string
-     */
-    private function buildRFC1738Pair(array $pair): string
-    {
-        $str = $this->buildRFC3986Pair($this->filterPair($pair));
-        if (\strpos($str, '+') !== false || \strpos($str, '~') !== false) {
-            return \str_replace(['+', '~'], ['%2B', '%7E'], $str);
+        if (\is_numeric($pair[1])) {
+            return $pair[0].'='.$pair[1];
         }
 
-        return $str;
-    }
+        if (\is_bool($pair[1])) {
+            return $pair[0].'='.(int) $pair[1];
+        }
 
-    /**
-     * Build a RFC3987 query key/value pair association.
-     *
-     * @param array $pair
-     *
-     * @throws InvalidArgument If the pair is invalid
-     *
-     * @return string
-     */
-    private function buildRFC3987Pair(array $pair): string
-    {
-        $pair[0] = \str_replace($this->pattern, $this->replace, $pair[0]);
         if (null === $pair[1]) {
             return $pair[0];
         }
 
-        return $pair[0].'='.\str_replace($this->pattern, $this->replace, $pair[1]);
+        throw new InvalidArgument(\sprintf('A pair value must be a scalar value or the null value, `%s` given.', \gettype($pair[1])));
     }
 
     /**
-     * Build a raw query key/value pair association.
+     * Encode Matches sequence.
      *
-     * @param array $pair
-     *
-     * @throws InvalidArgument If the pair is invalid
+     * @param array $matches
      *
      * @return string
      */
-    private function buildRawPair(array $pair): string
+    private function encodeMatches(array $matches): string
     {
-        if (null === $pair[1]) {
-            return $pair[0];
+        if (\preg_match(self::REGEXP_UNRESERVED_CHAR, \rawurldecode($matches[0]))) {
+            return \rawurlencode($matches[0]);
         }
 
-        return $pair[0].'='.$pair[1];
+        return $matches[0];
     }
 }
