@@ -33,28 +33,10 @@ final class QueryBuilder implements EncodingInterface
      * @internal
      */
     const ENCODING_LIST = [
-        self::RFC1738_ENCODING => 1,
-        self::RFC3986_ENCODING => 1,
-        self::RFC3987_ENCODING => 1,
-        self::NO_ENCODING => 1,
-    ];
-
-    /**
-     * @internal
-     */
-    const CHARS_LIST = [
-        'pattern' => [
-            "\x00", "\x01", "\x02", "\x03", "\x04", "\x05", "\x06", "\x07", "\x08", "\x09",
-            "\x0A", "\x0B", "\x0C", "\x0D", "\x0E", "\x0F", "\x10", "\x11", "\x12", "\x13",
-            "\x14", "\x15", "\x16", "\x17", "\x18", "\x19", "\x1A", "\x1B", "\x1C", "\x1D",
-            "\x1E", "\x1F", "\x7F", '#',
-        ],
-        'replace' => [
-            '%00', '%01', '%02', '%03', '%04', '%05', '%06', '%07', '%08', '%09',
-            '%0A', '%0B', '%0C', '%0D', '%0E', '%0F', '%10', '%11', '%12', '%13',
-            '%14', '%15', '%16', '%17', '%18', '%19', '%1A', '%1B', '%1C', '%1D',
-            '%1E', '%1F', '%7F', '%23',
-        ],
+        self::RFC1738_ENCODING => 'buildRFC1738Pair',
+        self::RFC3986_ENCODING => 'buildPair',
+        self::RFC3987_ENCODING => 'buildPair',
+        self::NO_ENCODING => 'buildRawPair',
     ];
 
     /**
@@ -63,24 +45,10 @@ final class QueryBuilder implements EncodingInterface
     const REGEXP_UNRESERVED_CHAR = '/[^A-Za-z0-9_\-\.~]/';
 
     /**
-     * @var callable
-     */
-    private $encoder;
-
-    /**
      * @var string
      */
-    private $regexp;
+    private $regexp = '';
 
-    /**
-     * @var string[]
-     */
-    private $pattern;
-
-    /**
-     * @var string[]
-     */
-    private $replace;
     /**
      * Build a query string from an associative array.
      *
@@ -103,25 +71,25 @@ final class QueryBuilder implements EncodingInterface
             throw new TypeError('the pairs collection must be an array or a Traversable object');
         }
 
-        if (!isset(self::ENCODING_LIST[$enc_type])) {
-            throw new UnknownEncoding(\sprintf('Unsupported or Unknown Encoding: %s', $enc_type));
+        $method = self::ENCODING_LIST[$enc_type] ?? null;
+        if (null === $method) {
+            throw new UnknownEncoding(\sprintf('Unknown Encoding: %s', $enc_type));
         }
 
-        $method = 'buildRawPair';
-        if (self::RFC3986_ENCODING == $enc_type) {
-            $subdelim = \str_replace(\html_entity_decode($separator, ENT_HTML5, 'UTF-8'), '', "!$'()*+,;=:@?/&%");
-            $this->regexp = '/(%[A-Fa-f0-9]{2})|[^A-Za-z0-9_\-\.~'.\preg_quote($subdelim, '/').']+/u';
-            $method = 'buildRFC3986Pair';
-        } elseif (self::RFC1738_ENCODING == $enc_type) {
-            $subdelim = \str_replace(\html_entity_decode($separator, ENT_HTML5, 'UTF-8'), '', "!$'()*+,;=:@?/&%");
-            $this->regexp = '/(%[A-Fa-f0-9]{2})|[^A-Za-z0-9_\-\.~'.\preg_quote($subdelim, '/').']+/u';
-            $method = 'buildRFC1738Pair';
+        if (\in_array($enc_type, [self::RFC3986_ENCODING, self::RFC1738_ENCODING], true)) {
+            $this->regexp = '/
+                (%[A-Fa-f0-9]{2})|
+                [^A-Za-z0-9_\-\.~'.\preg_quote(
+                    \str_replace(
+                        \html_entity_decode($separator, ENT_HTML5, 'UTF-8'),
+                        '',
+                        "!$'()*+,;=:@?/&%"
+                    ),
+                    '/'
+                ).']+
+        /ux';
         } elseif (self::RFC3987_ENCODING == $enc_type) {
-            $method = 'buildRFC3987Pair';
-            $this->pattern = self::CHARS_LIST['pattern'];
-            $this->pattern[] = $separator;
-            $this->replace = self::CHARS_LIST['replace'];
-            $this->replace[] = \rawurlencode($separator);
+            $this->regexp = '/[\\x00-\\x1F\\x7F]|[#|'.\preg_quote($separator, '/').']/i';
         }
 
         $res = [];
@@ -138,7 +106,6 @@ final class QueryBuilder implements EncodingInterface
                 $pair[0] = (int) $pair[0];
             }
 
-            $pair[0] = (string) $pair[0];
             $res[] = $this->$method($pair);
         }
 
@@ -176,37 +143,6 @@ final class QueryBuilder implements EncodingInterface
     }
 
     /**
-     * Build a RFC3987 query key/value pair association.
-     *
-     * @param array $pair
-     *
-     * @throws InvalidArgument If the pair is invalid
-     *
-     * @return string
-     */
-    private function buildRFC3987Pair(array $pair): string
-    {
-        $pair[0] = \str_replace($this->pattern, $this->replace, $pair[0]);
-        if (\is_string($pair[1])) {
-            return $pair[0].'='.\str_replace($this->pattern, $this->replace, $pair[1]);
-        }
-
-        if (\is_numeric($pair[1])) {
-            return $pair[0].'='.$pair[1];
-        }
-
-        if (\is_bool($pair[1])) {
-            return $pair[0].'='.(int) $pair[1];
-        }
-
-        if (null === $pair[1]) {
-            return $pair[0];
-        }
-
-        throw new InvalidArgument(\sprintf('A pair value must be a scalar value or the null value, `%s` given.', \gettype($pair[1])));
-    }
-
-    /**
      * Build a RFC1738 query key/value pair association.
      *
      * @param array $pair
@@ -217,7 +153,7 @@ final class QueryBuilder implements EncodingInterface
      */
     private function buildRFC1738Pair(array $pair): string
     {
-        $str = $this->buildRFC3986Pair($pair);
+        $str = $this->buildPair($pair);
         if (\strpos($str, '+') !== false || \strpos($str, '~') !== false) {
             return \str_replace(['+', '~'], ['%2B', '%7E'], $str);
         }
@@ -234,18 +170,18 @@ final class QueryBuilder implements EncodingInterface
      *
      * @return string
      */
-    private function buildRFC3986Pair(array $pair): string
+    private function buildPair(array $pair): string
     {
-        if (\preg_match($this->regexp, $pair[0])) {
+        if (\is_string($pair[0]) && \preg_match($this->regexp, $pair[0])) {
             $pair[0] = \preg_replace_callback($this->regexp, [$this, 'encodeMatches'], $pair[0]);
         }
 
         if (\is_string($pair[1])) {
-            if (\preg_match($this->regexp, $pair[1])) {
-                return $pair[0].'='.\preg_replace_callback($this->regexp, [$this, 'encodeMatches'], $pair[1]);
+            if (!\preg_match($this->regexp, $pair[1])) {
+                return $pair[0].'='.$pair[1];
             }
 
-            return $pair[0].'='.$pair[1];
+            return $pair[0].'='.\preg_replace_callback($this->regexp, [$this, 'encodeMatches'], $pair[1]);
         }
 
         if (\is_numeric($pair[1])) {
