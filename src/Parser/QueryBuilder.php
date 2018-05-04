@@ -61,7 +61,9 @@ final class QueryBuilder implements EncodingInterface
      * @param string $separator query string separator
      * @param int    $enc_type  query encoding type
      *
-     * @throws InvalidArgument If a query pair is malformed
+     * @throws TypeError        If the pairs are not iterable
+     * @throws InvalidQueryPair If a pair is invalid
+     * @throws UnknownEncoding  If the encoding type is invalid
      *
      * @return null|string
      */
@@ -95,11 +97,11 @@ final class QueryBuilder implements EncodingInterface
         $res = [];
         foreach ($pairs as $pair) {
             if (\array_keys($pair) !== [0, 1]) {
-                throw new InvalidArgument('A pair must be a sequential array starting at `0` and containing two elements.');
+                throw new InvalidQueryPair('A pair must be a sequential array starting at `0` and containing two elements.');
             }
 
             if (!\is_scalar($pair[0])) {
-                throw new InvalidArgument(\sprintf('A pair key must be a scalar value `%s` given.', \gettype($pair[0])));
+                throw new InvalidQueryPair(\sprintf('A pair key must be a scalar value `%s` given.', \gettype($pair[0])));
             }
 
             if (\is_bool($pair[0])) {
@@ -117,7 +119,7 @@ final class QueryBuilder implements EncodingInterface
      *
      * @param array $pair
      *
-     * @throws InvalidArgument If the pair is invalid
+     * @throws InvalidQueryPair If the pair is invalid
      *
      * @return string
      */
@@ -139,15 +141,13 @@ final class QueryBuilder implements EncodingInterface
             return $pair[0];
         }
 
-        throw new InvalidArgument(\sprintf('A pair value must be a scalar value or the null value, `%s` given.', \gettype($pair[1])));
+        throw new InvalidQueryPair(\sprintf('A pair value must be a scalar value or the null value, `%s` given.', \gettype($pair[1])));
     }
 
     /**
      * Build a RFC1738 query key/value pair association.
      *
      * @param array $pair
-     *
-     * @throws InvalidArgument If the pair is invalid
      *
      * @return string
      */
@@ -166,7 +166,7 @@ final class QueryBuilder implements EncodingInterface
      *
      * @param array $pair
      *
-     * @throws InvalidArgument If the pair is invalid
+     * @throws InvalidQueryPair If the pair is invalid
      *
      * @return string
      */
@@ -196,7 +196,7 @@ final class QueryBuilder implements EncodingInterface
             return $pair[0];
         }
 
-        throw new InvalidArgument(\sprintf('A pair value must be a scalar value or the null value, `%s` given.', \gettype($pair[1])));
+        throw new InvalidQueryPair(\sprintf('A pair value must be a scalar value or the null value, `%s` given.', \gettype($pair[1])));
     }
 
     /**

@@ -17,12 +17,8 @@ namespace League\Uri\Parser;
 use InvalidArgumentException;
 
 /**
- * The base exception class.
- *
- * @package League\Uri
- * @author  Ignace Nyamagana Butera <nyamsprod@gmail.com>
- * @since   1.0.0
+ * Exception thorwn if a Query Pair is invalid.
  */
-class InvalidArgument extends InvalidArgumentException
+class InvalidQueryPair extends InvalidArgumentException implements InvalidQueryArgument
 {
 }

@@ -156,19 +156,21 @@ parse_str($query, $variables);
 
 ### Exceptions
 
-- if the query string or the key/pair collection is invalid a `League\Uri\Parser\InvalidArgument` exception is thrown.
-- If the encoding algorithm is unknown a `League\Uri\Parser\UnknownEncoding` exception is thrown. the `UnknownEncoding` extends the `InvalidArgument` exception.
+- If the query string is invalid a `League\Uri\Parser\InvalidQueryString` exception is thrown.
+- If the query pair is invalid a `League\Uri\Parser\InvalidQueryPair` exception is thrown.
+- If the encoding algorithm is unknown or invalid a `League\Uri\Parser\UnknownEncoding` exception is thrown.
+
+All exceptions implements the `League\Uri\Parser\InvalidQueryArgument` interface.
 
 ```php
 <?php
 
 use League\Uri;
-use League\Uri\Parser\InvalidArgument;
+use League\Uri\Parser\InvalidQueryArgument;
 
-$query = 'module=show&arr.test[1]=sid&arr test[4][two]=fred&module=hide';
 try {
-	Uri\query_extract($query, '&', 42);
-} catch (InvalidArgument $e) {
+	Uri\query_extract('foo=bar', '&', 42);
+} catch (InvalidQueryArgument $e) {
 	//$e is an instanceof League\Uri\Parser\UnknownEncoding
 }
 ```

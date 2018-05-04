@@ -70,9 +70,9 @@ final class QueryParser implements EncodingInterface
      * @param string $separator The query string separator
      * @param int    $enc_type  The query encoding algorithm
      *
-     * @throws TypeError       If the query string is a resource, an array or an object without the `__toString` method
-     * @throws Exception       If the query string is invalid
-     * @throws UnknownEncoding If the encoding type is invalid
+     * @throws TypeError          If the query string is a resource, an array or an object without the `__toString` method
+     * @throws InvalidQueryString If the query string is invalid
+     * @throws UnknownEncoding    If the encoding type is invalid
      *
      * @return array
      */
@@ -97,7 +97,7 @@ final class QueryParser implements EncodingInterface
         }
 
         if (\preg_match(self::REGEXP_INVALID_CHARS, $query)) {
-            throw new InvalidArgument(\sprintf('Invalid query string: %s', $query));
+            throw new InvalidQueryString(\sprintf('Invalid query string: %s', $query));
         }
 
         $pairs = [];

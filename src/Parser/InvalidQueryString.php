@@ -17,8 +17,8 @@ namespace League\Uri\Parser;
 use InvalidArgumentException;
 
 /**
- * Exception thrown if a the Query encoding is invalid.
+ * Exception thorwn if a Query string is invalid.
  */
-class UnknownEncoding extends InvalidArgumentException implements InvalidQueryArgument
+class InvalidQueryString extends InvalidArgumentException implements InvalidQueryArgument
 {
 }
