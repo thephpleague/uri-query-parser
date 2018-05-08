@@ -1,20 +1,24 @@
 <?php
+
 /**
- * League Uri Query Parser (http://uri.thephpleague.com).
+ * League.Uri (http://uri.thephpleague.com).
  *
  * @author  Ignace Nyamagana Butera <nyamsprod@gmail.com>
- * @license https://github.com/thephpleague/uri-query-parser/blob/master/LICENSE (MIT License)
+ * @license https://github.com/thephpleague/uri-components/blob/master/LICENSE (MIT License)
  * @version 1.0.0
  * @link    https://github.com/thephpleague/uri-query-parser
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 declare(strict_types=1);
 
 namespace League\Uri\Parser;
 
 use League\Uri\EncodingInterface;
+use League\Uri\Exception\InvalidQueryEncoding;
+use League\Uri\Exception\InvalidQueryPair;
 use Traversable;
 use TypeError;
 
@@ -61,9 +65,9 @@ final class QueryBuilder implements EncodingInterface
      * @param string $separator query string separator
      * @param int    $enc_type  query encoding type
      *
-     * @throws TypeError        If the pairs are not iterable
-     * @throws InvalidQueryPair If a pair is invalid
-     * @throws UnknownEncoding  If the encoding type is invalid
+     * @throws TypeError            If the pairs are not iterable
+     * @throws InvalidQueryPair     If a pair is invalid
+     * @throws InvalidQueryEncoding If the encoding type is invalid
      *
      * @return null|string
      */
@@ -75,7 +79,7 @@ final class QueryBuilder implements EncodingInterface
 
         $method = self::ENCODING_LIST[$enc_type] ?? null;
         if (null === $method) {
-            throw new UnknownEncoding(\sprintf('Unknown Encoding: %s', $enc_type));
+            throw new InvalidQueryEncoding(\sprintf('Unknown Encoding: %s', $enc_type));
         }
 
         if (\in_array($enc_type, [self::RFC3986_ENCODING, self::RFC1738_ENCODING], true)) {

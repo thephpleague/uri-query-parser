@@ -1,13 +1,25 @@
 <?php
 
+/**
+ * League.Uri (http://uri.thephpleague.com).
+ *
+ * @author  Ignace Nyamagana Butera <nyamsprod@gmail.com>
+ * @license https://github.com/thephpleague/uri-components/blob/master/LICENSE (MIT License)
+ * @version 1.0.0
+ * @link    https://github.com/thephpleague/uri-query-parser
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace LeagueTest\Uri;
 
 use ArrayIterator;
 use League\Uri;
 use League\Uri\EncodingInterface;
-use League\Uri\Parser\InvalidQueryPair;
-use League\Uri\Parser\InvalidQueryString;
-use League\Uri\Parser\UnknownEncoding;
+use League\Uri\Exception\InvalidQueryEncoding;
+use League\Uri\Exception\InvalidQueryPair;
+use League\Uri\Exception\InvalidQueryString;
 use PHPUnit\Framework\TestCase;
 use TypeError;
 
@@ -19,7 +31,7 @@ class FunctionsTest extends TestCase
 {
     public function testEncodingThrowsExceptionWithQueryParser()
     {
-        $this->expectException(UnknownEncoding::class);
+        $this->expectException(InvalidQueryEncoding::class);
         Uri\query_parse('foo=bar', '&', 42);
     }
 
@@ -31,7 +43,7 @@ class FunctionsTest extends TestCase
 
     public function testEncodingThrowsExceptionWithQueryBuilder()
     {
-        $this->expectException(UnknownEncoding::class);
+        $this->expectException(InvalidQueryEncoding::class);
         Uri\query_build([['foo', 'bar']], '&', 42);
     }
 
