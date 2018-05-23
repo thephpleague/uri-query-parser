@@ -18,6 +18,6 @@ namespace League\Uri\Exception;
 
 use InvalidArgumentException;
 
-class InvalidArgument extends InvalidArgumentException
+class InvalidUriComponent extends InvalidArgumentException
 {
 }
