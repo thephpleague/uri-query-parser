@@ -12,8 +12,12 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace League\Uri\Exception;
 
-interface InvalidQueryArgument
+use InvalidArgumentException;
+
+class InvalidArgument extends InvalidArgumentException
 {
 }

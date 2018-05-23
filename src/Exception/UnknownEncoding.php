@@ -16,8 +16,6 @@ declare(strict_types=1);
 
 namespace League\Uri\Exception;
 
-use InvalidArgumentException;
-
-class UnknownEncoding extends InvalidArgumentException
+class UnknownEncoding extends InvalidArgument
 {
 }

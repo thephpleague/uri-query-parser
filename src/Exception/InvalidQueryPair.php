@@ -16,8 +16,6 @@ declare(strict_types=1);
 
 namespace League\Uri\Exception;
 
-use InvalidArgumentException;
-
-class InvalidQueryPair extends InvalidArgumentException implements InvalidQueryArgument
+class InvalidQueryPair extends InvalidArgument
 {
 }
