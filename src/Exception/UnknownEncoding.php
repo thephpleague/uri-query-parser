@@ -18,6 +18,6 @@ namespace League\Uri\Exception;
 
 use InvalidArgumentException;
 
-class InvalidQueryEncoding extends InvalidArgumentException implements InvalidQueryArgument
+class UnknownEncoding extends InvalidArgumentException
 {
 }

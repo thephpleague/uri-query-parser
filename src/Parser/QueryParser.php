@@ -17,8 +17,8 @@ declare(strict_types=1);
 namespace League\Uri\Parser;
 
 use League\Uri\EncodingInterface;
-use League\Uri\Exception\InvalidQueryEncoding;
 use League\Uri\Exception\InvalidQueryString;
+use League\Uri\Exception\UnknownEncoding;
 use TypeError;
 
 /**
@@ -74,16 +74,16 @@ final class QueryParser implements EncodingInterface
      * @param string $separator The query string separator
      * @param int    $enc_type  The query encoding algorithm
      *
-     * @throws TypeError            If the query string is a resource, an array or an object without the `__toString` method
-     * @throws InvalidQueryString   If the query string is invalid
-     * @throws InvalidQueryEncoding If the encoding type is invalid
+     * @throws TypeError          If the query string is a resource, an array or an object without the `__toString` method
+     * @throws InvalidQueryString If the query string is invalid
+     * @throws UnknownEncoding    If the encoding type is invalid
      *
      * @return array
      */
     public function parse($query, string $separator = '&', int $enc_type = self::RFC3986_ENCODING): array
     {
         if (!isset(self::ENCODING_LIST[$enc_type])) {
-            throw new InvalidQueryEncoding(\sprintf('Unknown Encoding: %s', $enc_type));
+            throw new UnknownEncoding(\sprintf('Unknown Encoding: %s', $enc_type));
         }
         $this->enc_type = $enc_type;
 
