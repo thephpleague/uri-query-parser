@@ -51,7 +51,14 @@ final class QueryBuilder implements EncodingInterface
     /**
      * @var string
      */
-    private $regexp = '';
+    private static $regexp = '';
+
+    /**
+     * @codeCoverageIgnore
+     */
+    private function __construct()
+    {
+    }
 
     /**
      * Build a query string from an associative array.
@@ -62,8 +69,8 @@ final class QueryBuilder implements EncodingInterface
      *    - it does not modify parameters keys
      *
      * @param mixed  $pairs     Collection of key/value pairs as array
-     * @param string $separator query string separator
      * @param int    $enc_type  query encoding type
+     * @param string $separator query string separator
      *
      * @throws TypeError        If the pairs are not iterable
      * @throws InvalidQueryPair If a pair is invalid
@@ -71,7 +78,7 @@ final class QueryBuilder implements EncodingInterface
      *
      * @return null|string
      */
-    public function build($pairs, string $separator = '&', int $enc_type = self::RFC3986_ENCODING)
+    public static function build($pairs, int $enc_type = self::RFC3986_ENCODING, string $separator = '&')
     {
         if (!\is_array($pairs) && !$pairs instanceof Traversable) {
             throw new TypeError('the pairs collection must be an array or a Traversable object');
@@ -83,7 +90,7 @@ final class QueryBuilder implements EncodingInterface
         }
 
         if (\in_array($enc_type, [self::RFC3986_ENCODING, self::RFC1738_ENCODING], true)) {
-            $this->regexp = '/
+            self::$regexp = '/
                 (%[A-Fa-f0-9]{2})|
                 [^A-Za-z0-9_\-\.~'.\preg_quote(
                     \str_replace(
@@ -95,7 +102,7 @@ final class QueryBuilder implements EncodingInterface
                 ).']+
         /ux';
         } elseif (self::RFC3987_ENCODING == $enc_type) {
-            $this->regexp = '/[\\x00-\\x1F\\x7F]|[#|'.\preg_quote($separator, '/').']/i';
+            self::$regexp = '/[\\x00-\\x1F\\x7F]|[#|'.\preg_quote($separator, '/').']/i';
         }
 
         $res = [];
@@ -112,7 +119,7 @@ final class QueryBuilder implements EncodingInterface
                 $pair[0] = (int) $pair[0];
             }
 
-            $res[] = $this->$method($pair);
+            $res[] = self::$method($pair);
         }
 
         return empty($res) ? null : \implode($separator, $res);
@@ -127,7 +134,7 @@ final class QueryBuilder implements EncodingInterface
      *
      * @return string
      */
-    private function buildRawPair(array $pair): string
+    private static function buildRawPair(array $pair): string
     {
         if (\is_string($pair[1])) {
             return $pair[0].'='.$pair[1];
@@ -155,9 +162,9 @@ final class QueryBuilder implements EncodingInterface
      *
      * @return string
      */
-    private function buildRFC1738Pair(array $pair): string
+    private static function buildRFC1738Pair(array $pair): string
     {
-        $str = $this->buildPair($pair);
+        $str = self::buildPair($pair);
         if (\strpos($str, '+') !== false || \strpos($str, '~') !== false) {
             return \str_replace(['+', '~'], ['%2B', '%7E'], $str);
         }
@@ -174,18 +181,18 @@ final class QueryBuilder implements EncodingInterface
      *
      * @return string
      */
-    private function buildPair(array $pair): string
+    private static function buildPair(array $pair): string
     {
-        if (\is_string($pair[0]) && \preg_match($this->regexp, $pair[0])) {
-            $pair[0] = \preg_replace_callback($this->regexp, [$this, 'encodeMatches'], $pair[0]);
+        if (\is_string($pair[0]) && \preg_match(self::$regexp, $pair[0])) {
+            $pair[0] = \preg_replace_callback(self::$regexp, [QueryBuilder::class, 'encodeMatches'], $pair[0]);
         }
 
         if (\is_string($pair[1])) {
-            if (!\preg_match($this->regexp, $pair[1])) {
+            if (!\preg_match(self::$regexp, $pair[1])) {
                 return $pair[0].'='.$pair[1];
             }
 
-            return $pair[0].'='.\preg_replace_callback($this->regexp, [$this, 'encodeMatches'], $pair[1]);
+            return $pair[0].'='.\preg_replace_callback(self::$regexp, [QueryBuilder::class, 'encodeMatches'], $pair[1]);
         }
 
         if (\is_numeric($pair[1])) {
@@ -210,7 +217,7 @@ final class QueryBuilder implements EncodingInterface
      *
      * @return string
      */
-    private function encodeMatches(array $matches): string
+    private static function encodeMatches(array $matches): string
     {
         if (\preg_match(self::REGEXP_UNRESERVED_CHAR, \rawurldecode($matches[0]))) {
             return \rawurlencode($matches[0]);

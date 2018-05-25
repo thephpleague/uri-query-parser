@@ -18,10 +18,13 @@ use ArrayIterator;
 use League\Uri;
 use League\Uri\EncodingInterface;
 use League\Uri\Exception\InvalidQueryPair;
-use League\Uri\Exception\InvalidQueryString;
+use League\Uri\Exception\MalformedUriComponent;
 use League\Uri\Exception\UnknownEncoding;
 use PHPUnit\Framework\TestCase;
 use TypeError;
+use function League\Uri\query_build;
+use function League\Uri\query_extract;
+use function League\Uri\query_parse;
 
 /**
  * @group query
@@ -32,31 +35,31 @@ class FunctionsTest extends TestCase
     public function testEncodingThrowsExceptionWithQueryParser()
     {
         $this->expectException(UnknownEncoding::class);
-        Uri\query_parse('foo=bar', '&', 42);
+        query_parse('foo=bar', 42);
     }
 
-    public function testInvalidQueryStringThrowsExceptionWithQueryParser()
+    public function testMalformedUriComponentThrowsExceptionWithQueryParser()
     {
-        $this->expectException(InvalidQueryString::class);
-        Uri\query_parse("foo=bar\0");
+        $this->expectException(MalformedUriComponent::class);
+        query_parse("foo=bar\0");
     }
 
     public function testEncodingThrowsExceptionWithQueryBuilder()
     {
         $this->expectException(UnknownEncoding::class);
-        Uri\query_build([['foo', 'bar']], '&', 42);
+        query_build([['foo', 'bar']], 42);
     }
 
     public function testBuildThrowsExceptionWithQueryBuilder()
     {
         $this->expectException(InvalidQueryPair::class);
-        Uri\query_build([['foo', 'boo' => 'bar']]);
+        query_build([['foo', 'boo' => 'bar']]);
     }
 
     public function testWrongTypeThrowExceptionParseQuery()
     {
         $this->expectException(TypeError::class);
-        Uri\query_parse(['foo=bar'], '&', PHP_QUERY_RFC1738);
+        query_parse(['foo=bar'], PHP_QUERY_RFC1738);
     }
 
     /**
@@ -67,7 +70,7 @@ class FunctionsTest extends TestCase
      */
     public function testExtractQuery($query, $expectedData)
     {
-        $this->assertSame($expectedData, Uri\query_extract($query));
+        $this->assertSame($expectedData, query_extract($query));
     }
 
     public function extractQueryProvider()
@@ -140,7 +143,7 @@ class FunctionsTest extends TestCase
      */
     public function testParse($query, $separator, $expected, $encoding)
     {
-        $this->assertSame($expected, Uri\query_parse($query, $separator, $encoding));
+        $this->assertSame($expected, query_parse($query, $encoding, $separator));
     }
 
     public function parserProvider()
@@ -289,10 +292,10 @@ class FunctionsTest extends TestCase
         $expected_rfc3987,
         $expected_no_encoding
     ) {
-        $this->assertSame($expected_rfc1738, Uri\query_build($pairs, '&', PHP_QUERY_RFC1738));
-        $this->assertSame($expected_rfc3986, Uri\query_build($pairs, '&', PHP_QUERY_RFC3986));
-        $this->assertSame($expected_rfc3987, Uri\query_build($pairs, '&', EncodingInterface::RFC3987_ENCODING));
-        $this->assertSame($expected_no_encoding, Uri\query_build($pairs, '&', EncodingInterface::NO_ENCODING));
+        $this->assertSame($expected_rfc1738, query_build($pairs, PHP_QUERY_RFC1738));
+        $this->assertSame($expected_rfc3986, query_build($pairs, PHP_QUERY_RFC3986));
+        $this->assertSame($expected_rfc3987, query_build($pairs, EncodingInterface::RFC3987_ENCODING));
+        $this->assertSame($expected_no_encoding, query_build($pairs, EncodingInterface::NO_ENCODING));
     }
 
     public function buildProvider()
@@ -409,7 +412,7 @@ class FunctionsTest extends TestCase
     public function testBuildQueryThrowsExceptionOnWrongType()
     {
         $this->expectException(TypeError::class);
-        Uri\query_build(\date_create());
+        query_build(\date_create());
     }
 
     /**
@@ -421,7 +424,7 @@ class FunctionsTest extends TestCase
     public function testBuildQueryThrowsException($pairs, $enc_type)
     {
         $this->expectException(InvalidQueryPair::class);
-        Uri\query_build($pairs, '&', $enc_type);
+        query_build($pairs, $enc_type);
     }
 
     public function failedBuilderProvider()

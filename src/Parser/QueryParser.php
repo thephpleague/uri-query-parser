@@ -17,7 +17,7 @@ declare(strict_types=1);
 namespace League\Uri\Parser;
 
 use League\Uri\EncodingInterface;
-use League\Uri\Exception\InvalidQueryString;
+use League\Uri\Exception\MalformedUriComponent;
 use League\Uri\Exception\UnknownEncoding;
 use TypeError;
 
@@ -60,7 +60,14 @@ final class QueryParser implements EncodingInterface
     /**
      * @var int
      */
-    private $enc_type;
+    private static $enc_type;
+
+    /**
+     * @codeCoverageIgnore
+     */
+    private function __construct()
+    {
+    }
 
     /**
      * Parse a query string into an associative array.
@@ -71,21 +78,21 @@ final class QueryParser implements EncodingInterface
      *    - it does not create nested array
      *
      * @param mixed  $query     The query string to parse
-     * @param string $separator The query string separator
      * @param int    $enc_type  The query encoding algorithm
+     * @param string $separator The query string separator
      *
-     * @throws TypeError          If the query string is a resource, an array or an object without the `__toString` method
-     * @throws InvalidQueryString If the query string is invalid
-     * @throws UnknownEncoding    If the encoding type is invalid
+     * @throws TypeError             If the query string is a resource, an array or an object without the `__toString` method
+     * @throws MalformedUriComponent If the query string is invalid
+     * @throws UnknownEncoding       If the encoding type is invalid
      *
      * @return array
      */
-    public function parse($query, string $separator = '&', int $enc_type = self::RFC3986_ENCODING): array
+    public static function parse($query, int $enc_type = self::RFC3986_ENCODING, string $separator = '&'): array
     {
         if (!isset(self::ENCODING_LIST[$enc_type])) {
             throw new UnknownEncoding(\sprintf('Unknown Encoding: %s', $enc_type));
         }
-        $this->enc_type = $enc_type;
+        self::$enc_type = $enc_type;
 
         if (null === $query) {
             return [];
@@ -101,12 +108,12 @@ final class QueryParser implements EncodingInterface
         }
 
         if (\preg_match(self::REGEXP_INVALID_CHARS, $query)) {
-            throw new InvalidQueryString(\sprintf('Invalid query string: %s', $query));
+            throw new MalformedUriComponent(\sprintf('Invalid query string: %s', $query));
         }
 
         $pairs = [];
         foreach (\explode($separator, $query) as $pair) {
-            $pairs[] = $this->parsePair($pair);
+            $pairs[] = self::parsePair($pair);
         }
 
         return $pairs;
@@ -119,14 +126,14 @@ final class QueryParser implements EncodingInterface
      *
      * @return array
      */
-    private function parsePair(string $pair): array
+    private static function parsePair(string $pair): array
     {
         list($key, $value) = \explode('=', $pair, 2) + [1 => null];
         if (\preg_match(self::REGEXP_ENCODED_PATTERN, $key)) {
-            $key = \preg_replace_callback(self::REGEXP_ENCODED_PATTERN, [$this, 'decodeMatch'], $key);
+            $key = \preg_replace_callback(self::REGEXP_ENCODED_PATTERN, [QueryParser::class, 'decodeMatch'], $key);
         }
 
-        if (self::RFC1738_ENCODING === $this->enc_type && false !== \strpos($key, '+')) {
+        if (self::RFC1738_ENCODING === self::$enc_type && false !== \strpos($key, '+')) {
             $key = \str_replace('+', ' ', $key);
         }
 
@@ -135,10 +142,10 @@ final class QueryParser implements EncodingInterface
         }
 
         if (\preg_match(self::REGEXP_ENCODED_PATTERN, $value)) {
-            $value = \preg_replace_callback(self::REGEXP_ENCODED_PATTERN, [$this, 'decodeMatch'], $value);
+            $value = \preg_replace_callback(self::REGEXP_ENCODED_PATTERN, [QueryParser::class, 'decodeMatch'], $value);
         }
 
-        if (self::RFC1738_ENCODING === $this->enc_type && false !== \strpos($value, '+')) {
+        if (self::RFC1738_ENCODING === self::$enc_type && false !== \strpos($value, '+')) {
             $value = \str_replace('+', ' ', $value);
         }
 
@@ -152,7 +159,7 @@ final class QueryParser implements EncodingInterface
      *
      * @return string
      */
-    private function decodeMatch(array $matches): string
+    private static function decodeMatch(array $matches): string
     {
         if (\preg_match(self::REGEXP_DECODED_PATTERN, $matches[0])) {
             return \strtoupper($matches[0]);
@@ -172,16 +179,16 @@ final class QueryParser implements EncodingInterface
      * @see https://wiki.php.net/rfc/on_demand_name_mangling
      *
      * @param null|string $str       the query string
-     * @param string      $separator a the query string single character separator
      * @param int         $enc_type  the query encoding
+     * @param string      $separator a the query string single character separator
      *
      * @return array
      */
-    public function extract($str, string $separator = '&', int $enc_type = self::RFC3986_ENCODING): array
+    public static function extract($str, int $enc_type = self::RFC3986_ENCODING, string $separator = '&'): array
     {
         $variables = [];
-        foreach ($this->parse($str, $separator, $enc_type) as $pair) {
-            $this->extractPhpVariable($pair[0], \rawurldecode((string) $pair[1]), $variables);
+        foreach (self::parse($str, $enc_type, $separator) as $pair) {
+            self::extractPhpVariable($pair[0], \rawurldecode((string) $pair[1]), $variables);
         }
 
         return $variables;
@@ -213,7 +220,7 @@ final class QueryParser implements EncodingInterface
      * @param string $value the formatted value
      * @param array  $data  the result array passed by reference
      */
-    private function extractPhpVariable(string $name, string $value, array &$data)
+    private static function extractPhpVariable(string $name, string $value, array &$data)
     {
         if ('' === $name) {
             return;
@@ -245,6 +252,6 @@ final class QueryParser implements EncodingInterface
             $remaining = '';
         }
 
-        $this->extractPhpVariable($index.$remaining, $value, $data[$key]);
+        self::extractPhpVariable($index.$remaining, $value, $data[$key]);
     }
 }

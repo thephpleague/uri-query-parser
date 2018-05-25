@@ -25,18 +25,14 @@ use League\Uri\Parser\QueryParser;
  * @see QueryBuilder::build
  *
  * @param mixed  $pairs     The query pairs
- * @param string $separator The query string separator
  * @param int    $enc_type  The query encoding type
+ * @param string $separator The query string separator
  *
  * @return null|string
  */
-function query_build($pairs, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986)
+function query_build($pairs, int $enc_type = PHP_QUERY_RFC3986, string $separator = '&')
 {
-    static $builder;
-
-    $builder = $builder ?? new QueryBuilder();
-
-    return $builder->build($pairs, $separator, $enc_type);
+    return QueryBuilder::build($pairs, $enc_type, $separator);
 }
 
 /**
@@ -45,18 +41,14 @@ function query_build($pairs, string $separator = '&', int $enc_type = PHP_QUERY_
  * @see QueryParser::parse
  *
  * @param mixed  $query     The query string to parse
- * @param string $separator The query string separator
  * @param int    $enc_type  The query encoding algorithm
+ * @param string $separator The query string separator
  *
  * @return array
  */
-function query_parse($query, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): array
+function query_parse($query, int $enc_type = PHP_QUERY_RFC3986, string $separator = '&'): array
 {
-    static $parser;
-
-    $parser = $parser ?? new QueryParser();
-
-    return $parser->parse($query, $separator, $enc_type);
+    return QueryParser::parse($query, $enc_type, $separator);
 }
 
 /**
@@ -65,16 +57,12 @@ function query_parse($query, string $separator = '&', int $enc_type = PHP_QUERY_
  * @see QueryParser::extract
  *
  * @param mixed  $query     The query string to parse
- * @param string $separator The query string separator
  * @param int    $enc_type  The query encoding algorithm
+ * @param string $separator The query string separator
  *
  * @return array
  */
-function query_extract($query, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): array
+function query_extract($query, int $enc_type = PHP_QUERY_RFC3986, string $separator = '&'): array
 {
-    static $parser;
-
-    $parser = $parser ?? new QueryParser();
-
-    return $parser->extract($query, $separator, $enc_type);
+    return QueryParser::extract($query, $enc_type, $separator);
 }
