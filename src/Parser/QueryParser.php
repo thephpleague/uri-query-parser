@@ -16,7 +16,6 @@ declare(strict_types=1);
 
 namespace League\Uri\Parser;
 
-use League\Uri\EncodingInterface;
 use League\Uri\Exception\MalformedUriComponent;
 use League\Uri\Exception\UnknownEncoding;
 use TypeError;
@@ -30,17 +29,12 @@ use TypeError;
  * @see      https://tools.ietf.org/html/rfc3986#section-3.4
  * @internal Use the function League\Uri\query_parse and League\Uri\query_extract instead
  */
-final class QueryParser implements EncodingInterface
+final class QueryParser
 {
     /**
      * @internal
      */
-    const ENCODING_LIST = [
-        self::RFC1738_ENCODING => 1,
-        self::RFC3986_ENCODING => 1,
-        self::RFC3987_ENCODING => 1,
-        self::NO_ENCODING => 1,
-    ];
+    const ENCODING_LIST = [PHP_QUERY_RFC1738 => 1, PHP_QUERY_RFC3986 => 1];
 
     /**
      * @internal
@@ -78,8 +72,8 @@ final class QueryParser implements EncodingInterface
      *    - it does not create nested array
      *
      * @param mixed  $query     The query string to parse
-     * @param int    $enc_type  The query encoding algorithm
      * @param string $separator The query string separator
+     * @param int    $enc_type  The query encoding algorithm
      *
      * @throws TypeError             If the query string is a resource, an array or an object without the `__toString` method
      * @throws MalformedUriComponent If the query string is invalid
@@ -87,7 +81,7 @@ final class QueryParser implements EncodingInterface
      *
      * @return array
      */
-    public static function parse($query, int $enc_type = self::RFC3986_ENCODING, string $separator = '&'): array
+    public static function parse($query, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): array
     {
         if (!isset(self::ENCODING_LIST[$enc_type])) {
             throw new UnknownEncoding(\sprintf('Unknown Encoding: %s', $enc_type));
@@ -129,24 +123,24 @@ final class QueryParser implements EncodingInterface
     private static function parsePair(string $pair): array
     {
         list($key, $value) = \explode('=', $pair, 2) + [1 => null];
-        if (\preg_match(self::REGEXP_ENCODED_PATTERN, $key)) {
-            $key = \preg_replace_callback(self::REGEXP_ENCODED_PATTERN, [QueryParser::class, 'decodeMatch'], $key);
+        if (PHP_QUERY_RFC1738 === self::$enc_type && false !== \strpos($key, '+')) {
+            $key = \str_replace('+', ' ', $key);
         }
 
-        if (self::RFC1738_ENCODING === self::$enc_type && false !== \strpos($key, '+')) {
-            $key = \str_replace('+', ' ', $key);
+        if (\preg_match(self::REGEXP_ENCODED_PATTERN, $key)) {
+            $key = \preg_replace_callback(self::REGEXP_ENCODED_PATTERN, [QueryParser::class, 'decodeMatch'], $key);
         }
 
         if (null === $value) {
             return [$key, $value];
         }
 
-        if (\preg_match(self::REGEXP_ENCODED_PATTERN, $value)) {
-            $value = \preg_replace_callback(self::REGEXP_ENCODED_PATTERN, [QueryParser::class, 'decodeMatch'], $value);
+        if (PHP_QUERY_RFC1738 === self::$enc_type && false !== \strpos($value, '+')) {
+            $value = \str_replace('+', ' ', $value);
         }
 
-        if (self::RFC1738_ENCODING === self::$enc_type && false !== \strpos($value, '+')) {
-            $value = \str_replace('+', ' ', $value);
+        if (\preg_match(self::REGEXP_ENCODED_PATTERN, $value)) {
+            $value = \preg_replace_callback(self::REGEXP_ENCODED_PATTERN, [QueryParser::class, 'decodeMatch'], $value);
         }
 
         return [$key, $value];
@@ -179,15 +173,15 @@ final class QueryParser implements EncodingInterface
      * @see https://wiki.php.net/rfc/on_demand_name_mangling
      *
      * @param null|string $str       the query string
-     * @param int         $enc_type  the query encoding
      * @param string      $separator a the query string single character separator
+     * @param int         $enc_type  the query encoding
      *
      * @return array
      */
-    public static function extract($str, int $enc_type = self::RFC3986_ENCODING, string $separator = '&'): array
+    public static function extract($str, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): array
     {
         $variables = [];
-        foreach (self::parse($str, $enc_type, $separator) as $pair) {
+        foreach (self::parse($str, $separator, $enc_type) as $pair) {
             self::extractPhpVariable($pair[0], \rawurldecode((string) $pair[1]), $variables);
         }
 

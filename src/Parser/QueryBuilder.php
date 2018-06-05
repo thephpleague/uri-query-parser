@@ -16,7 +16,6 @@ declare(strict_types=1);
 
 namespace League\Uri\Parser;
 
-use League\Uri\EncodingInterface;
 use League\Uri\Exception\InvalidQueryPair;
 use League\Uri\Exception\UnknownEncoding;
 use Traversable;
@@ -31,17 +30,12 @@ use TypeError;
  * @see      https://tools.ietf.org/html/rfc3986#section-3.4
  * @internal Use the function League\Uri\query_build instead
  */
-final class QueryBuilder implements EncodingInterface
+final class QueryBuilder
 {
     /**
      * @internal
      */
-    const ENCODING_LIST = [
-        self::RFC1738_ENCODING => 'buildRFC1738Pair',
-        self::RFC3986_ENCODING => 'buildPair',
-        self::RFC3987_ENCODING => 'buildPair',
-        self::NO_ENCODING => 'buildRawPair',
-    ];
+    const ENCODING_LIST = [PHP_QUERY_RFC1738 => 1, PHP_QUERY_RFC3986 => 1];
 
     /**
      * @internal
@@ -51,7 +45,12 @@ final class QueryBuilder implements EncodingInterface
     /**
      * @var string
      */
-    private static $regexp = '';
+    private static $regexpKey;
+
+    /**
+     * @var string
+     */
+    private static $regexpValue;
 
     /**
      * @codeCoverageIgnore
@@ -69,8 +68,8 @@ final class QueryBuilder implements EncodingInterface
      *    - it does not modify parameters keys
      *
      * @param mixed  $pairs     Collection of key/value pairs as array
-     * @param int    $enc_type  query encoding type
      * @param string $separator query string separator
+     * @param int    $enc_type  query encoding type
      *
      * @throws TypeError        If the pairs are not iterable
      * @throws InvalidQueryPair If a pair is invalid
@@ -78,98 +77,59 @@ final class QueryBuilder implements EncodingInterface
      *
      * @return null|string
      */
-    public static function build($pairs, int $enc_type = self::RFC3986_ENCODING, string $separator = '&')
+    public static function build($pairs, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986)
     {
         if (!\is_array($pairs) && !$pairs instanceof Traversable) {
             throw new TypeError('the pairs collection must be an array or a Traversable object');
         }
 
-        $method = self::ENCODING_LIST[$enc_type] ?? null;
-        if (null === $method) {
+        if (null === (self::ENCODING_LIST[$enc_type] ?? null)) {
             throw new UnknownEncoding(\sprintf('Unknown Encoding: %s', $enc_type));
         }
 
-        if (\in_array($enc_type, [self::RFC3986_ENCODING, self::RFC1738_ENCODING], true)) {
-            self::$regexp = '/
-                (%[A-Fa-f0-9]{2})|
-                [^A-Za-z0-9_\-\.~'.\preg_quote(
-                    \str_replace(
-                        \html_entity_decode($separator, ENT_HTML5, 'UTF-8'),
-                        '',
-                        "!$'()*+,;=:@?/&%"
-                    ),
-                    '/'
-                ).']+
-        /ux';
-        } elseif (self::RFC3987_ENCODING == $enc_type) {
-            self::$regexp = '/[\\x00-\\x1F\\x7F]|[#|'.\preg_quote($separator, '/').']/i';
+        $regexpValueSuffix = "!$'()*+,;=:@?/&%";
+        $regexpKeySuffix = "!$'()*+,;:@?/%";
+        if (PHP_QUERY_RFC1738 === $enc_type) {
+            $regexpValueSuffix = '*=&';
+            $regexpKeySuffix = '*';
         }
+
+        self::$regexpValue = '/
+            (%[A-Fa-f0-9]{2})|
+            [^A-Za-z0-9_\-\.~'.\preg_quote(
+                \str_replace(
+                    \html_entity_decode($separator, ENT_HTML5, 'UTF-8'),
+                    '',
+                    $regexpValueSuffix
+                ),
+                '/'
+            ).']+/ux';
+
+        self::$regexpKey = '/
+            (%[A-Fa-f0-9]{2})|
+            [^A-Za-z0-9_\-\.~'.\preg_quote(
+                \str_replace(
+                    \html_entity_decode($separator, ENT_HTML5, 'UTF-8'),
+                    '',
+                    $regexpKeySuffix
+                ),
+                '/'
+            ).']+/ux';
 
         $res = [];
         foreach ($pairs as $pair) {
-            if (\array_keys($pair) !== [0, 1]) {
-                throw new InvalidQueryPair('A pair must be a sequential array starting at `0` and containing two elements.');
-            }
+            $res[] = self::buildPair($pair);
+        }
 
-            if (!\is_scalar($pair[0])) {
-                throw new InvalidQueryPair(\sprintf('A pair key must be a scalar value `%s` given.', \gettype($pair[0])));
-            }
+        if (PHP_QUERY_RFC1738 === $enc_type) {
+            $mapper = function (string $pair): string {
+                return \str_replace(['+', '%20'], ['%2B', '+'], $pair);
+            };
 
-            if (\is_bool($pair[0])) {
-                $pair[0] = (int) $pair[0];
-            }
-
-            $res[] = self::$method($pair);
+            $res = \array_map($mapper, $res);
         }
 
         return empty($res) ? null : \implode($separator, $res);
-    }
-
-    /**
-     * Build a raw query key/value pair association.
-     *
-     * @param array $pair
-     *
-     * @throws InvalidQueryPair If the pair is invalid
-     *
-     * @return string
-     */
-    private static function buildRawPair(array $pair): string
-    {
-        if (\is_string($pair[1])) {
-            return $pair[0].'='.$pair[1];
-        }
-
-        if (\is_numeric($pair[1])) {
-            return $pair[0].'='.$pair[1];
-        }
-
-        if (\is_bool($pair[1])) {
-            return $pair[0].'='.(int) $pair[1];
-        }
-
-        if (null === $pair[1]) {
-            return $pair[0];
-        }
-
-        throw new InvalidQueryPair(\sprintf('A pair value must be a scalar value or the null value, `%s` given.', \gettype($pair[1])));
-    }
-
-    /**
-     * Build a RFC1738 query key/value pair association.
-     *
-     * @param array $pair
-     *
-     * @return string
-     */
-    private static function buildRFC1738Pair(array $pair): string
-    {
-        $str = self::buildPair($pair);
-        if (\strpos($str, '+') !== false || \strpos($str, '~') !== false) {
-            return \str_replace(['+', '~'], ['%2B', '%7E'], $str);
-        }
-
-        return $str;
     }
 
     /**
@@ -183,16 +143,28 @@ final class QueryBuilder implements EncodingInterface
      */
     private static function buildPair(array $pair): string
     {
-        if (\is_string($pair[0]) && \preg_match(self::$regexp, $pair[0])) {
-            $pair[0] = \preg_replace_callback(self::$regexp, [QueryBuilder::class, 'encodeMatches'], $pair[0]);
+        if ([0, 1] !== \array_keys($pair)) {
+            throw new InvalidQueryPair('A pair must be a sequential array starting at `0` and containing two elements.');
+        }
+
+        if (!\is_scalar($pair[0])) {
+            throw new InvalidQueryPair(\sprintf('A pair key must be a scalar value `%s` given.', \gettype($pair[0])));
+        }
+
+        if (\is_bool($pair[0])) {
+            $pair[0] = (int) $pair[0];
+        }
+
+        if (\is_string($pair[0]) && \preg_match(self::$regexpKey, $pair[0])) {
+            $pair[0] = \preg_replace_callback(self::$regexpKey, [QueryBuilder::class, 'encodeMatches'], $pair[0]);
         }
 
         if (\is_string($pair[1])) {
-            if (!\preg_match(self::$regexp, $pair[1])) {
+            if (!\preg_match(self::$regexpValue, $pair[1])) {
                 return $pair[0].'='.$pair[1];
             }
 
-            return $pair[0].'='.\preg_replace_callback(self::$regexp, [QueryBuilder::class, 'encodeMatches'], $pair[1]);
+            return $pair[0].'='.\preg_replace_callback(self::$regexpValue, [QueryBuilder::class, 'encodeMatches'], $pair[1]);
         }
 
         if (\is_numeric($pair[1])) {
