@@ -15,7 +15,6 @@
 namespace LeagueTest\Uri;
 
 use ArrayIterator;
-use League\Uri;
 use League\Uri\Exception\InvalidQueryPair;
 use League\Uri\Exception\MalformedUriComponent;
 use League\Uri\Exception\UnknownEncoding;
