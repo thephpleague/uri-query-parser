@@ -121,7 +121,7 @@ final class QueryBuilder
             $res[] = self::buildPair($pair);
         }
 
-        if (PHP_QUERY_RFC1738 === $enc_type) {
+        if (PHP_QUERY_RFC1738 === $enc_type && !empty($res)) {
             $mapper = function (string $pair): string {
                 return \str_replace(['+', '%20'], ['%2B', '+'], $pair);
             };
