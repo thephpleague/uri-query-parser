@@ -52,11 +52,6 @@ final class QueryParser
     const REGEXP_DECODED_PATTERN = ',%2[D|E]|3[0-9]|4[1-9|A-F]|5[0-9|A|F]|6[1-9|A-F]|7[0-9|E],i';
 
     /**
-     * @var int
-     */
-    private static $enc_type;
-
-    /**
      * @codeCoverageIgnore
      */
     private function __construct()
@@ -86,7 +81,6 @@ final class QueryParser
         if (!isset(self::ENCODING_LIST[$enc_type])) {
             throw new UnknownEncoding(\sprintf('Unknown Encoding: %s', $enc_type));
         }
-        self::$enc_type = $enc_type;
 
         if (null === $query) {
             return [];
@@ -103,6 +97,10 @@ final class QueryParser
 
         if (\preg_match(self::REGEXP_INVALID_CHARS, $query)) {
             throw new MalformedUriComponent(\sprintf('Invalid query string: %s', $query));
+        }
+
+        if (PHP_QUERY_RFC1738 === $enc_type) {
+            $query = \str_replace('+', ' ', $query);
         }
 
         $pairs = [];
@@ -123,9 +121,6 @@ final class QueryParser
     private static function parsePair(string $pair): array
     {
         list($key, $value) = \explode('=', $pair, 2) + [1 => null];
-        if (PHP_QUERY_RFC1738 === self::$enc_type && false !== \strpos($key, '+')) {
-            $key = \str_replace('+', ' ', $key);
-        }
 
         if (\preg_match(self::REGEXP_ENCODED_PATTERN, $key)) {
             $key = \preg_replace_callback(self::REGEXP_ENCODED_PATTERN, [QueryParser::class, 'decodeMatch'], $key);
@@ -133,10 +128,6 @@ final class QueryParser
 
         if (null === $value) {
             return [$key, $value];
-        }
-
-        if (PHP_QUERY_RFC1738 === self::$enc_type && false !== \strpos($value, '+')) {
-            $value = \str_replace('+', ' ', $value);
         }
 
         if (\preg_match(self::REGEXP_ENCODED_PATTERN, $value)) {

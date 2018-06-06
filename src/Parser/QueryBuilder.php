@@ -35,7 +35,16 @@ final class QueryBuilder
     /**
      * @internal
      */
-    const ENCODING_LIST = [PHP_QUERY_RFC1738 => 1, PHP_QUERY_RFC3986 => 1];
+    const ENCODING_LIST = [
+        PHP_QUERY_RFC1738 => [
+            'suffixKey' => '*',
+            'suffixValue' => '*=&',
+        ],
+        PHP_QUERY_RFC3986 => [
+            'suffixKey' => "!$'()*+,;:@?/%",
+            'suffixValue' => "!$'()*+,;=:@?/&%",
+        ],
+    ];
 
     /**
      * @internal
@@ -87,20 +96,13 @@ final class QueryBuilder
             throw new UnknownEncoding(\sprintf('Unknown Encoding: %s', $enc_type));
         }
 
-        $regexpValueSuffix = "!$'()*+,;=:@?/&%";
-        $regexpKeySuffix = "!$'()*+,;:@?/%";
-        if (PHP_QUERY_RFC1738 === $enc_type) {
-            $regexpValueSuffix = '*=&';
-            $regexpKeySuffix = '*';
-        }
-
         self::$regexpValue = '/
             (%[A-Fa-f0-9]{2})|
             [^A-Za-z0-9_\-\.~'.\preg_quote(
                 \str_replace(
                     \html_entity_decode($separator, ENT_HTML5, 'UTF-8'),
                     '',
-                    $regexpValueSuffix
+                    self::ENCODING_LIST[$enc_type]['suffixValue']
                 ),
                 '/'
             ).']+/ux';
@@ -111,7 +113,7 @@ final class QueryBuilder
                 \str_replace(
                     \html_entity_decode($separator, ENT_HTML5, 'UTF-8'),
                     '',
-                    $regexpKeySuffix
+                    self::ENCODING_LIST[$enc_type]['suffixKey']
                 ),
                 '/'
             ).']+/ux';
@@ -121,15 +123,16 @@ final class QueryBuilder
             $res[] = self::buildPair($pair);
         }
 
-        if (PHP_QUERY_RFC1738 === $enc_type && !empty($res)) {
-            $mapper = function (string $pair): string {
-                return \str_replace(['+', '%20'], ['%2B', '+'], $pair);
-            };
-
-            $res = \array_map($mapper, $res);
+        if (empty($res)) {
+            return null;
         }
 
-        return empty($res) ? null : \implode($separator, $res);
+        $query = \implode($separator, $res);
+        if (PHP_QUERY_RFC1738 === $enc_type) {
+            return \str_replace(['+', '%20'], ['%2B', '+'], $query);
+        }
+
+        return $query;
     }
 
     /**
