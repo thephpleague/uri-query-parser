@@ -11,7 +11,6 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-require __DIR__.'/../src/EncodingInterface.php';
 require __DIR__.'/../src/Parser/QueryParser.php';
 require __DIR__.'/../src/functions.php';
 

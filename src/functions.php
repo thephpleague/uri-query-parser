@@ -25,14 +25,14 @@ use League\Uri\Parser\QueryParser;
  * @see QueryBuilder::build
  *
  * @param mixed  $pairs     The query pairs
- * @param int    $enc_type  The query encoding type
  * @param string $separator The query string separator
+ * @param int    $enc_type  The query encoding algorithm
  *
  * @return null|string
  */
-function query_build($pairs, int $enc_type = PHP_QUERY_RFC3986, string $separator = '&')
+function query_build($pairs, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986)
 {
-    return QueryBuilder::build($pairs, $enc_type, $separator);
+    return QueryBuilder::build($pairs, $separator, $enc_type);
 }
 
 /**
@@ -41,14 +41,14 @@ function query_build($pairs, int $enc_type = PHP_QUERY_RFC3986, string $separato
  * @see QueryParser::parse
  *
  * @param mixed  $query     The query string to parse
- * @param int    $enc_type  The query encoding algorithm
  * @param string $separator The query string separator
+ * @param int    $enc_type  The query encoding algorithm
  *
  * @return array
  */
-function query_parse($query, int $enc_type = PHP_QUERY_RFC3986, string $separator = '&'): array
+function query_parse($query, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): array
 {
-    return QueryParser::parse($query, $enc_type, $separator);
+    return QueryParser::parse($query, $separator, $enc_type);
 }
 
 /**
@@ -57,12 +57,12 @@ function query_parse($query, int $enc_type = PHP_QUERY_RFC3986, string $separato
  * @see QueryParser::extract
  *
  * @param mixed  $query     The query string to parse
- * @param int    $enc_type  The query encoding algorithm
  * @param string $separator The query string separator
+ * @param int    $enc_type  The query encoding algorithm
  *
  * @return array
  */
-function query_extract($query, int $enc_type = PHP_QUERY_RFC3986, string $separator = '&'): array
+function query_extract($query, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): array
 {
-    return QueryParser::extract($query, $enc_type, $separator);
+    return QueryParser::extract($query, $separator, $enc_type);
 }

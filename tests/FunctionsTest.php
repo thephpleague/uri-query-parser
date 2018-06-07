@@ -15,8 +15,6 @@
 namespace LeagueTest\Uri;
 
 use ArrayIterator;
-use League\Uri;
-use League\Uri\EncodingInterface;
 use League\Uri\Exception\InvalidQueryPair;
 use League\Uri\Exception\MalformedUriComponent;
 use League\Uri\Exception\UnknownEncoding;
@@ -35,7 +33,7 @@ class FunctionsTest extends TestCase
     public function testEncodingThrowsExceptionWithQueryParser()
     {
         $this->expectException(UnknownEncoding::class);
-        query_parse('foo=bar', 42);
+        query_parse('foo=bar', '&', 42);
     }
 
     public function testMalformedUriComponentThrowsExceptionWithQueryParser()
@@ -47,7 +45,7 @@ class FunctionsTest extends TestCase
     public function testEncodingThrowsExceptionWithQueryBuilder()
     {
         $this->expectException(UnknownEncoding::class);
-        query_build([['foo', 'bar']], 42);
+        query_build([['foo', 'bar']], '&', 42);
     }
 
     public function testBuildThrowsExceptionWithQueryBuilder()
@@ -59,7 +57,7 @@ class FunctionsTest extends TestCase
     public function testWrongTypeThrowExceptionParseQuery()
     {
         $this->expectException(TypeError::class);
-        query_parse(['foo=bar'], PHP_QUERY_RFC1738);
+        query_parse(['foo=bar'], '&', PHP_QUERY_RFC1738);
     }
 
     /**
@@ -143,7 +141,7 @@ class FunctionsTest extends TestCase
      */
     public function testParse($query, $separator, $expected, $encoding)
     {
-        $this->assertSame($expected, query_parse($query, $encoding, $separator));
+        $this->assertSame($expected, query_parse($query, $separator, $encoding));
     }
 
     public function parserProvider()
@@ -163,7 +161,7 @@ class FunctionsTest extends TestCase
             'rfc1738 without hexaencoding' => [
                 'to+to=foo%2bbar',
                 '&',
-                [['to to', 'foo bar']],
+                [['to to', 'foo+bar']],
                 PHP_QUERY_RFC1738,
             ],
             'null value' => [
@@ -282,20 +280,14 @@ class FunctionsTest extends TestCase
      * @param array  $pairs
      * @param string $expected_rfc1738
      * @param string $expected_rfc3986
-     * @param string $expected_rfc3987
-     * @param string $expected_no_encoding
      */
     public function testBuild(
         $pairs,
         $expected_rfc1738,
-        $expected_rfc3986,
-        $expected_rfc3987,
-        $expected_no_encoding
+        $expected_rfc3986
     ) {
-        $this->assertSame($expected_rfc1738, query_build($pairs, PHP_QUERY_RFC1738));
-        $this->assertSame($expected_rfc3986, query_build($pairs, PHP_QUERY_RFC3986));
-        $this->assertSame($expected_rfc3987, query_build($pairs, EncodingInterface::RFC3987_ENCODING));
-        $this->assertSame($expected_no_encoding, query_build($pairs, EncodingInterface::NO_ENCODING));
+        $this->assertSame($expected_rfc1738, query_build($pairs, '&', PHP_QUERY_RFC1738));
+        $this->assertSame($expected_rfc3986, query_build($pairs, '&', PHP_QUERY_RFC3986));
     }
 
     public function buildProvider()
@@ -305,106 +297,76 @@ class FunctionsTest extends TestCase
                 'pairs' => [],
                 'expected_rfc1738' => null,
                 'expected_rfc3986' => null,
-                'expected_rfc3987' => null,
-                'expected_no_encoding' => null,
             ],
             'identical keys' => [
                 'pairs' => new ArrayIterator([['a', true] , [true, 'a']]),
                 'expected_rfc1738' => 'a=1&1=a',
                 'expected_rfc3986' => 'a=1&1=a',
-                'expected_rfc3987' => 'a=1&1=a',
-                'expected_no_encoding' => 'a=1&1=a',
             ],
             'no value' => [
                 'pairs' => [['a', null], ['b', null]],
                 'expected_rfc1738' => 'a&b',
                 'expected_rfc3986' => 'a&b',
-                'expected_rfc3987' => 'a&b',
-                'expected_no_encoding' => 'a&b',
             ],
             'empty value' => [
                 'pairs' => [['a', ''], ['b', 1.3]],
                 'expected_rfc1738' => 'a=&b=1.3',
                 'expected_rfc3986' => 'a=&b=1.3',
-                'expected_rfc3987' => 'a=&b=1.3',
-                'expected_no_encoding' => 'a=&b=1.3',
             ],
             'php array (1)' => [
                 'pairs' => [['a[]', '1%a6'], ['a[]', '2']],
                 'expected_rfc1738' => 'a%5B%5D=1%25a6&a%5B%5D=2',
                 'expected_rfc3986' => 'a%5B%5D=1%25a6&a%5B%5D=2',
-                'expected_rfc3987' => 'a[]=1%a6&a[]=2',
-                'expected_no_encoding' => 'a[]=1%a6&a[]=2',
             ],
             'php array (2)' => [
                 'pairs' => [['module', 'home'], ['action', 'show'], ['page', '😓']],
                 'expected_rfc1738' => 'module=home&action=show&page=%F0%9F%98%93',
                 'expected_rfc3986' => 'module=home&action=show&page=%F0%9F%98%93',
-                'expected_rfc3987' => 'module=home&action=show&page=😓',
-                'expected_no_encoding' => 'module=home&action=show&page=😓',
             ],
             'php array (3)' => [
                 'pairs' => [['module', 'home'], ['action', 'v%61lue']],
                 'expected_rfc1738' => 'module=home&action=v%61lue',
                 'expected_rfc3986' => 'module=home&action=v%61lue',
-                'expected_rfc3987' => 'module=home&action=v%61lue',
-                'expected_no_encoding' => 'module=home&action=v%61lue',
             ],
             'preserve dot' => [
                 'pairs' => [['a.b', '3']],
                 'expected_rfc1738' => 'a.b=3',
                 'expected_rfc3986' => 'a.b=3',
-                'expected_rfc3987' => 'a.b=3',
-                'expected_no_encoding' => 'a.b=3',
             ],
             'no key stripping' => [
                 'pairs' => [['a', ''], ['b', null]],
                 'expected_rfc1738' => 'a=&b',
                 'expected_rfc3986' => 'a=&b',
-                'expected_rfc3987' => 'a=&b',
-                'expected_no_encoding' => 'a=&b',
             ],
             'no value stripping' => [
                 'pairs' => [['a', 'b=']],
                 'expected_rfc1738' => 'a=b=',
                 'expected_rfc3986' => 'a=b=',
-                'expected_rfc3987' => 'a=b=',
-                'expected_no_encoding' => 'a=b=',
             ],
             'key only' => [
                 'pairs' => [['a', null]],
                 'expected_rfc1738' => 'a',
                 'expected_rfc3986' => 'a',
-                'expected_rfc3987' => 'a',
-                'expected_no_encoding' => 'a',
             ],
             'preserve falsey 1' => [
                 'pairs' => [['0', null]],
                 'expected_rfc1738' => '0',
                 'expected_rfc3986' => '0',
-                'expected_rfc3987' => '0',
-                'expected_no_encoding' => '0',
             ],
             'preserve falsey 2' => [
                 'pairs' => [['0', '']],
                 'expected_rfc1738' => '0=',
                 'expected_rfc3986' => '0=',
-                'expected_rfc3987' => '0=',
-                'expected_no_encoding' => '0=',
             ],
             'preserve falsey 3' => [
                 'pairs' => [['0', '0']],
                 'expected_rfc1738' => '0=0',
                 'expected_rfc3986' => '0=0',
-                'expected_rfc3987' => '0=0',
-                'expected_no_encoding' => '0=0',
             ],
             'rcf1738' => [
                 'pairs' => [['toto', 'foo+bar']],
                 'expected_rfc1738' => 'toto=foo%2Bbar',
                 'expected_rfc3986' => 'toto=foo+bar',
-                'expected_rfc3987' => 'toto=foo+bar',
-                'expected_no_encoding' => 'toto=foo+bar',
             ],
         ];
     }
@@ -424,7 +386,7 @@ class FunctionsTest extends TestCase
     public function testBuildQueryThrowsException($pairs, $enc_type)
     {
         $this->expectException(InvalidQueryPair::class);
-        query_build($pairs, $enc_type);
+        query_build($pairs, '&', $enc_type);
     }
 
     public function failedBuilderProvider()
@@ -441,14 +403,6 @@ class FunctionsTest extends TestCase
             'The pair value must be stringable or null - rfc3986/rfc1738' => [
                 [['foo', \date_create()]],
                 PHP_QUERY_RFC3986,
-            ],
-            'The pair value must be stringable or null - rfc3987' => [
-                [['foo', \date_create()]],
-                EncodingInterface::RFC3987_ENCODING,
-            ],
-            'The pair value must be stringable or null - raw' => [
-                [['foo', \date_create()]],
-                EncodingInterface::NO_ENCODING,
             ],
             'identical keys with associative array' => [
                 new ArrayIterator([['key' => 'a', 'value' => true] , ['key' => 'a', 'value' => '2']]),
