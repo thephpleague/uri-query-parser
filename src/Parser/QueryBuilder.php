@@ -62,13 +62,6 @@ final class QueryBuilder
     private static $regexpValue;
 
     /**
-     * @codeCoverageIgnore
-     */
-    private function __construct()
-    {
-    }
-
-    /**
      * Build a query string from an associative array.
      *
      * The method expects the return value from Query::parse to build

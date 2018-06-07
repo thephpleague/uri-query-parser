@@ -52,13 +52,6 @@ final class QueryParser
     const REGEXP_DECODED_PATTERN = ',%2[D|E]|3[0-9]|4[1-9|A-F]|5[0-9|A|F]|6[1-9|A-F]|7[0-9|E],i';
 
     /**
-     * @codeCoverageIgnore
-     */
-    private function __construct()
-    {
-    }
-
-    /**
      * Parse a query string into an associative array.
      *
      * Multiple identical key will generate an array. This function
