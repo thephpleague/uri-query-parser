@@ -88,19 +88,19 @@ final class QueryBuilder
      */
     public static function build($pairs, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986)
     {
-        if (!\is_array($pairs) && !$pairs instanceof Traversable) {
+        if (!is_array($pairs) && !$pairs instanceof Traversable) {
             throw new TypeError('the pairs collection must be an array or a Traversable object');
         }
 
         if (null === (self::ENCODING_LIST[$enc_type] ?? null)) {
-            throw new UnknownEncoding(\sprintf('Unknown Encoding: %s', $enc_type));
+            throw new UnknownEncoding(sprintf('Unknown Encoding: %s', $enc_type));
         }
 
         self::$regexpValue = '/
             (%[A-Fa-f0-9]{2})|
-            [^A-Za-z0-9_\-\.~'.\preg_quote(
-                \str_replace(
-                    \html_entity_decode($separator, ENT_HTML5, 'UTF-8'),
+            [^A-Za-z0-9_\-\.~'.preg_quote(
+                str_replace(
+                    html_entity_decode($separator, ENT_HTML5, 'UTF-8'),
                     '',
                     self::ENCODING_LIST[$enc_type]['suffixValue']
                 ),
@@ -109,9 +109,9 @@ final class QueryBuilder
 
         self::$regexpKey = '/
             (%[A-Fa-f0-9]{2})|
-            [^A-Za-z0-9_\-\.~'.\preg_quote(
-                \str_replace(
-                    \html_entity_decode($separator, ENT_HTML5, 'UTF-8'),
+            [^A-Za-z0-9_\-\.~'.preg_quote(
+                str_replace(
+                    html_entity_decode($separator, ENT_HTML5, 'UTF-8'),
                     '',
                     self::ENCODING_LIST[$enc_type]['suffixKey']
                 ),
@@ -127,9 +127,9 @@ final class QueryBuilder
             return null;
         }
 
-        $query = \implode($separator, $res);
+        $query = implode($separator, $res);
         if (PHP_QUERY_RFC1738 === $enc_type) {
-            return \str_replace(['+', '%20'], ['%2B', '+'], $query);
+            return str_replace(['+', '%20'], ['%2B', '+'], $query);
         }
 
         return $query;
@@ -146,43 +146,44 @@ final class QueryBuilder
      */
     private static function buildPair(array $pair): string
     {
-        if ([0, 1] !== \array_keys($pair)) {
+        if ([0, 1] !== array_keys($pair)) {
             throw new InvalidQueryPair('A pair must be a sequential array starting at `0` and containing two elements.');
         }
 
-        if (!\is_scalar($pair[0])) {
-            throw new InvalidQueryPair(\sprintf('A pair key must be a scalar value `%s` given.', \gettype($pair[0])));
+        list($name, $value) = $pair;
+        if (!is_scalar($name)) {
+            throw new InvalidQueryPair(sprintf('A pair key must be a scalar value `%s` given.', gettype($name)));
         }
 
-        if (\is_bool($pair[0])) {
-            $pair[0] = (int) $pair[0];
+        if (is_bool($name)) {
+            $name = (int) $name;
         }
 
-        if (\is_string($pair[0]) && \preg_match(self::$regexpKey, $pair[0])) {
-            $pair[0] = \preg_replace_callback(self::$regexpKey, [QueryBuilder::class, 'encodeMatches'], $pair[0]);
+        if (is_string($name) && preg_match(self::$regexpKey, $name)) {
+            $name = preg_replace_callback(self::$regexpKey, [QueryBuilder::class, 'encodeMatches'], $name);
         }
 
-        if (\is_string($pair[1])) {
-            if (!\preg_match(self::$regexpValue, $pair[1])) {
-                return $pair[0].'='.$pair[1];
+        if (is_string($value)) {
+            if (!preg_match(self::$regexpValue, $value)) {
+                return $name.'='.$value;
             }
 
-            return $pair[0].'='.\preg_replace_callback(self::$regexpValue, [QueryBuilder::class, 'encodeMatches'], $pair[1]);
+            return $name.'='.preg_replace_callback(self::$regexpValue, [QueryBuilder::class, 'encodeMatches'], $value);
         }
 
-        if (\is_numeric($pair[1])) {
-            return $pair[0].'='.$pair[1];
+        if (is_numeric($value)) {
+            return $name.'='.$value;
         }
 
-        if (\is_bool($pair[1])) {
-            return $pair[0].'='.(int) $pair[1];
+        if (is_bool($value)) {
+            return $name.'='.(int) $value;
         }
 
-        if (null === $pair[1]) {
-            return $pair[0];
+        if (null === $value) {
+            return $name;
         }
 
-        throw new InvalidQueryPair(\sprintf('A pair value must be a scalar value or the null value, `%s` given.', \gettype($pair[1])));
+        throw new InvalidQueryPair(sprintf('A pair value must be a scalar value or the null value, `%s` given.', gettype($value)));
     }
 
     /**
@@ -194,8 +195,8 @@ final class QueryBuilder
      */
     private static function encodeMatches(array $matches): string
     {
-        if (\preg_match(self::REGEXP_UNRESERVED_CHAR, \rawurldecode($matches[0]))) {
-            return \rawurlencode($matches[0]);
+        if (preg_match(self::REGEXP_UNRESERVED_CHAR, rawurldecode($matches[0]))) {
+            return rawurlencode($matches[0]);
         }
 
         return $matches[0];
