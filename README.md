@@ -9,16 +9,17 @@ This package contains a userland PHP uri query parser and builder.
 ```php
 <?php
 
-use League\Uri;
+use function League\Uri\query_parse;
+use function League\Uri\query_build;
 
-$pairs = Uri\query_parse('module=home&action=show&page=😓');
+$pairs = query_parse('module=home&action=show&page=😓');
 // returns [
 //     ['module', 'home'],
 //     ['action', 'show'],
 //     ['page', '😓']
 // ];
 
-$str = Uri\query_build([['module', 'home'], ['action', 'show'], ['page', '😓']]);
+$str = query_build([['module', 'home'], ['action', 'show'], ['page', '😓']]);
 // returns 'module=home&action=show&page=😓'
 ```
 
@@ -48,9 +49,9 @@ Parsing a query string is easy.
 ```php
 <?php
 
-use League\Uri;
+use function League\Uri\query_parse;
 
-$pairs = Uri\query_parse('module=home&action=show&page=😓');
+$pairs = query_parse('module=home&action=show&page=😓');
 // returns [
 //     ['module', 'home'],
 //     ['action', 'show'],
@@ -75,9 +76,9 @@ But you can specify the separator character as well as the string encoding algor
 ```php
 <?php
 
-use League\Uri;
+use function League\Uri\query_parse;
 
-$pairs = Uri\query_parse(
+$pairs = query_parse(
     'module=home:action=show:page=toto+bar&action=hide',
     ':',
     PHP_QUERY_RFC1738
@@ -97,9 +98,9 @@ To convert back the collection of key/value pairs into a valid query string you 
 ```php
 <?php
 
-use League\Uri;
+use function League\Uri\query_build;
 
-$pairs = Uri\query_build([
+$pairs = query_build([
     ['module', 'home'],
     ['action', 'show'],
     ['page', 'toto bar'],
@@ -125,13 +126,13 @@ Just like with `League\Uri\query_parse`, you can specify the separator and the e
 ```php
 <?php
 
-use League\Uri;
+use function League\Uri\query_extract;
 
-$query = 'module=show&arr.test[1]=sid&arr test[4][two]=fred&module=hide';
+$query = 'module=show&arr.test[1]=sid&arr test[4][two]=fred&+module+=hide';
 
-$params = Uri\query_extract($query, '&', PHP_QUERY_RFC1738);
+$params = query_extract($query, '&', PHP_QUERY_RFC1738);
 // $params contains [
-//     'module' = 'hide',
+//     'module' = 'show',
 //     'arr.test' => [
 //         1 => 'sid',
 //     ],
@@ -140,17 +141,19 @@ $params = Uri\query_extract($query, '&', PHP_QUERY_RFC1738);
 //             'two' => 'fred',
 //         ]
 //     ],
+//     ' module ' => 'hide',
 // ];
 
 parse_str($query, $variables);
 // $variables contains [
-//     'module' = 'hide',
+//     'module' = 'show',
 //     'arr_test' => [
 //         1 => 'sid',
 //         4 => [
 //             'two' => 'fred',
 //         ],
 //     ],
+//     'module_' = 'hide',
 // ];
 ```
 
@@ -160,17 +163,17 @@ parse_str($query, $variables);
 - If the query pair is invalid a `League\Uri\Parser\InvalidQueryPair` exception is thrown.
 - If the encoding algorithm is unknown or invalid a `League\Uri\Parser\UnknownEncoding` exception is thrown.
 
-All exceptions implements the `League\Uri\Parser\InvalidQueryArgument` interface.
+All exceptions extends the `League\Uri\Parser\InvalidUriComponent` marker class which extends PHP's `InvalidArgumentException` class.
 
 ```php
 <?php
 
-use League\Uri;
-use League\Uri\Parser\InvalidQueryArgument;
+use League\Uri\Parser\InvalidUriComponent;
+use function League\Uri\query_extract;
 
 try {
-	Uri\query_extract('foo=bar', '&', 42);
-} catch (InvalidQueryArgument $e) {
+	query_extract('foo=bar', '&', 42);
+} catch (InvalidUriComponent $e) {
 	//$e is an instanceof League\Uri\Parser\UnknownEncoding
 }
 ```

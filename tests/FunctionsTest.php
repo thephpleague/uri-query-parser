@@ -20,6 +20,8 @@ use League\Uri\Exception\MalformedUriComponent;
 use League\Uri\Exception\UnknownEncoding;
 use PHPUnit\Framework\TestCase;
 use TypeError;
+
+use function date_create;
 use function League\Uri\query_build;
 use function League\Uri\query_extract;
 use function League\Uri\query_parse;
@@ -374,7 +376,7 @@ class FunctionsTest extends TestCase
     public function testBuildQueryThrowsExceptionOnWrongType()
     {
         $this->expectException(TypeError::class);
-        query_build(\date_create());
+        query_build(date_create());
     }
 
     /**
@@ -397,11 +399,11 @@ class FunctionsTest extends TestCase
                 PHP_QUERY_RFC1738,
             ],
             'The pair key must be stringable' => [
-                [[\date_create(), 'bar']],
+                [[date_create(), 'bar']],
                 PHP_QUERY_RFC1738,
             ],
             'The pair value must be stringable or null - rfc3986/rfc1738' => [
-                [['foo', \date_create()]],
+                [['foo', date_create()]],
                 PHP_QUERY_RFC3986,
             ],
             'identical keys with associative array' => [

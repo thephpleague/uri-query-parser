@@ -11,6 +11,6 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-if (!\function_exists('League\Uri\query_parse')) {
+if (!function_exists('League\Uri\query_parse')) {
     require __DIR__.'/functions.php';
 }

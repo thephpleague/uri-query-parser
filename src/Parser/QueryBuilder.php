@@ -21,6 +21,22 @@ use League\Uri\Exception\UnknownEncoding;
 use Traversable;
 use TypeError;
 
+use function array_keys;
+use function html_entity_decode;
+use function implode;
+use function is_array;
+use function is_bool;
+use function is_numeric;
+use function is_scalar;
+use function is_string;
+use function preg_match;
+use function preg_quote;
+use function preg_replace_callback;
+use function rawurldecode;
+use function rawurlencode;
+use function sprintf;
+use function str_replace;
+
 /**
  * A class to build a URI query string from a collection of key/value pairs.
  *

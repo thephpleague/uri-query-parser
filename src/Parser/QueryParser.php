@@ -20,6 +20,20 @@ use League\Uri\Exception\MalformedUriComponent;
 use League\Uri\Exception\UnknownEncoding;
 use TypeError;
 
+use function array_key_exists;
+use function explode;
+use function is_array;
+use function is_scalar;
+use function method_exists;
+use function preg_match;
+use function preg_replace_callback;
+use function rawurldecode;
+use function sprintf;
+use function str_replace;
+use function strpos;
+use function strtoupper;
+use function substr;
+
 /**
  * A class to parse a URI query string.
  *
