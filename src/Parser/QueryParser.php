@@ -66,12 +66,7 @@ final class QueryParser
     const REGEXP_DECODED_PATTERN = ',%2[D|E]|3[0-9]|4[1-9|A-F]|5[0-9|A|F]|6[1-9|A-F]|7[0-9|E],i';
 
     /**
-     * Parse a query string into an associative array.
-     *
-     * Multiple identical key will generate an array. This function
-     * differ from PHP parse_str as:
-     *    - it does not modify or remove parameters keys
-     *    - it does not create nested array
+     * Parse a query string into a collection of key/value pairs.
      *
      * @param mixed  $query     The query string to parse
      * @param string $separator The query string separator
@@ -178,12 +173,7 @@ final class QueryParser
      */
     public static function extract($query, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): array
     {
-        $retval = [];
-        foreach (self::parse($query, $separator, $enc_type) as $pair) {
-            $retval = self::extractPhpVariable($pair[0], rawurldecode((string) $pair[1]), $retval);
-        }
-
-        return $retval;
+        return array_reduce(self::parse($query, $separator, $enc_type), [QueryParser::class, 'extractPhpVariable'], []);
     }
 
     /**
@@ -208,14 +198,19 @@ final class QueryParser
      * @see https://github.com/php/php-src/blob/master/ext/standard/tests/strings/parse_str_basic3.phpt
      * @see https://github.com/php/php-src/blob/master/ext/standard/tests/strings/parse_str_basic4.phpt
      *
-     * @param string $name  the pair key
-     * @param string $value the pair value
-     * @param array  $data  the submitted array
+     * @param array        $data  the submitted array
+     * @param array|string $name  the pair key
+     * @param string       $value the pair value
      *
      * @return array
      */
-    private static function extractPhpVariable(string $name, string $value, array $data): array
+    private static function extractPhpVariable(array $data, $name, string $value = ''): array
     {
+        if (is_array($name)) {
+            list($name, $value) = $name;
+            $value = rawurldecode((string) $value);
+        }
+
         if ('' === $name) {
             return $data;
         }
@@ -249,7 +244,7 @@ final class QueryParser
             $remaining = '';
         }
 
-        $data[$key] = self::extractPhpVariable($index.$remaining, $value, $data[$key]);
+        $data[$key] = self::extractPhpVariable($data[$key], $index.$remaining, $value);
 
         return $data;
     }
