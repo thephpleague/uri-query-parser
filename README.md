@@ -19,8 +19,8 @@ $pairs = query_parse('module=home&action=show&page=😓');
 //     ['page', '😓']
 // ];
 
-$str = query_build([['module', 'home'], ['action', 'show'], ['page', '😓']]);
-// returns 'module=home&action=show&page=😓'
+$str = query_build($pairs, '|');
+// returns 'module=home|action=show|page=😓'
 ```
 
 System Requirements
@@ -59,19 +59,25 @@ $pairs = query_parse('module=home&action=show&page=😓');
 // ];
 ```
 
+#### Description
+
+```php
+<?php
+
+function League\Uri\query_parse($query, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): array;
+```
+
 The returned array is a collection of key/value pairs. Each pair is represented as an array where the first element is the pair key and the second element the pair value. While the pair key is always a string, the pair value can be a string or the `null` value.
 
-The `League\Uri\query_parse` :
+The `League\Uri\query_parse` parameters are
 
-- accepts the `null` value, any scalar or object which is stringable;
+- `$query` can be the `null` value, any scalar or object which is stringable;
+- `$separator` is a string; by default it is the `&` character;
+- `$enc_type` is one of PHP's constant `PHP_QUERY_RFC3968` or `PHP_QUERY_RFC1738` which represented the supported encoding algoritm
+	- If you specify `PHP_QUERY_RFC3968` decoding will be done using [RFC3986](https://tools.ietf.org/html/rfc3986#section-3.4) rules;
+	- If you specify `PHP_QUERY_RFC1738` decoding will be done using [application/x-www-form-urlencoded](https://url.spec.whatwg.org/#urlencoded-parsing) rules;
 
-By default the function
-
-- assumes that the query separator is the `&` character;
-- assumes that the query string is encoded following [RFC3986](https://tools.ietf.org/html/rfc3986#section-3.4);
-
-But you can specify the separator character as well as the string encoding algorithm using its other two arguments.
-
+Here's a simple example showing how to use all the given paramters:
 
 ```php
 <?php
@@ -93,7 +99,7 @@ $pairs = query_parse(
 
 ### Building the URI query string
 
-To convert back the collection of key/value pairs into a valid query string you can use the `League\Uri\query_build` function.
+To convert back the collection of key/value pairs into a valid query string or the `null` value you can use the `League\Uri\query_build` function.
 
 ```php
 <?php
@@ -110,11 +116,21 @@ $pairs = query_build([
 // returns 'module=home|action=show|page=toto%20bar|action=hide';
 ```
 
+#### Description
+
+```php
+<?php
+
+function League\Uri\query_build(iterable $pairs, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): ?string;
+```
+
 The `League\Uri\query_build` :
 
 - accepts any iterable structure containing a collection of key/pair pairs as describe in the returned array of the `League\Uri\query_parse` function.
 
 Just like with `League\Uri\query_parse`, you can specify the separator and the encoding algorithm to use.
+
+- the function returns the `null` value if an empty array or collection is given as input.
 
 ### Extracting PHP variables
 
@@ -159,11 +175,11 @@ parse_str($query, $variables);
 
 ### Exceptions
 
+All exceptions extends the `League\Uri\Parser\InvalidUriComponent` marker class which extends PHP's `InvalidArgumentException` class.
+
 - If the query string is invalid a `League\Uri\Parser\InvalidQueryString` exception is thrown.
 - If the query pair is invalid a `League\Uri\Parser\InvalidQueryPair` exception is thrown.
 - If the encoding algorithm is unknown or invalid a `League\Uri\Parser\UnknownEncoding` exception is thrown.
-
-All exceptions extends the `League\Uri\Parser\InvalidUriComponent` marker class which extends PHP's `InvalidArgumentException` class.
 
 ```php
 <?php
