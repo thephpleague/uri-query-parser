@@ -20,7 +20,8 @@ use League\Uri\Exception\MalformedUriComponent;
 use League\Uri\Exception\UnknownEncoding;
 use PHPUnit\Framework\TestCase;
 use TypeError;
-
+use const PHP_QUERY_RFC1738;
+use const PHP_QUERY_RFC3986;
 use function date_create;
 use function League\Uri\query_build;
 use function League\Uri\query_extract;
@@ -79,6 +80,14 @@ class FunctionsTest extends TestCase
             [
                 'query' => '&&',
                 'expected' => [],
+            ],
+            [
+                'query' => true,
+                'expected' => ['1' => ''],
+            ],
+            [
+                'query' => false,
+                'expected' => ['0' => ''],
             ],
             [
                 'query' => 'arr[1=sid&arr[4][2=fred',
@@ -177,6 +186,12 @@ class FunctionsTest extends TestCase
                 '&',
                 [['', null]],
                 PHP_QUERY_RFC3986,
+            ],
+            'bool value' => [
+                false,
+                '&',
+                [['0', null]],
+                PHP_QUERY_RFC1738,
             ],
             'identical keys' => [
                 'a=1&a=2',

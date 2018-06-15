@@ -19,7 +19,8 @@ namespace League\Uri\Parser;
 use League\Uri\Exception\MalformedUriComponent;
 use League\Uri\Exception\UnknownEncoding;
 use TypeError;
-
+use const PHP_QUERY_RFC1738;
+use const PHP_QUERY_RFC3986;
 use function array_key_exists;
 use function explode;
 use function is_array;
@@ -90,6 +91,10 @@ final class QueryParser
 
         if (!is_scalar($query) && !method_exists($query, '__toString')) {
             throw new TypeError(sprintf('The query must be a scalar, a stringable object or the `null` value, `%s` given', gettype($query)));
+        }
+
+        if (is_bool($query)) {
+            $query = (int) $query;
         }
 
         $query = (string) $query;

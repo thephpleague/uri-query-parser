@@ -20,7 +20,8 @@ use League\Uri\Exception\InvalidQueryPair;
 use League\Uri\Exception\UnknownEncoding;
 use Traversable;
 use TypeError;
-
+use const PHP_QUERY_RFC1738;
+use const PHP_QUERY_RFC3986;
 use function array_keys;
 use function html_entity_decode;
 use function implode;

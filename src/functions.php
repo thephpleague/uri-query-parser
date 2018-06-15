@@ -18,6 +18,7 @@ namespace League\Uri;
 
 use League\Uri\Parser\QueryBuilder;
 use League\Uri\Parser\QueryParser;
+use const PHP_QUERY_RFC3986;
 
 /**
  * Build a query string from a collection of key/value pairs.
