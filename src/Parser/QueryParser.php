@@ -94,7 +94,7 @@ final class QueryParser
         }
 
         if (is_bool($query)) {
-            $query = (int) $query;
+            return [[$query ? '1' : '0', null]];
         }
 
         $query = (string) $query;
@@ -110,12 +110,7 @@ final class QueryParser
             $query = str_replace('+', ' ', $query);
         }
 
-        $pairs = [];
-        foreach (explode($separator, $query) as $pair) {
-            $pairs[] = self::parsePair($pair);
-        }
-
-        return $pairs;
+        return array_map([QueryParser::class, 'parsePair'], explode($separator, $query));
     }
 
     /**
