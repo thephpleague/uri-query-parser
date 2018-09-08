@@ -27,39 +27,35 @@ use function League\Uri\query_build;
 use function League\Uri\query_extract;
 use function League\Uri\query_parse;
 
-/**
- * @group query
- * @group function
- */
 class FunctionsTest extends TestCase
 {
     public function testEncodingThrowsExceptionWithQueryParser()
     {
-        $this->expectException(UnknownEncoding::class);
+        self::expectException(UnknownEncoding::class);
         query_parse('foo=bar', '&', 42);
     }
 
     public function testMalformedUriComponentThrowsExceptionWithQueryParser()
     {
-        $this->expectException(MalformedUriComponent::class);
+        self::expectException(MalformedUriComponent::class);
         query_parse("foo=bar\0");
     }
 
     public function testEncodingThrowsExceptionWithQueryBuilder()
     {
-        $this->expectException(UnknownEncoding::class);
+        self::expectException(UnknownEncoding::class);
         query_build([['foo', 'bar']], '&', 42);
     }
 
     public function testBuildThrowsExceptionWithQueryBuilder()
     {
-        $this->expectException(InvalidQueryPair::class);
+        self::expectException(InvalidQueryPair::class);
         query_build([['foo', 'boo' => 'bar']]);
     }
 
     public function testWrongTypeThrowExceptionParseQuery()
     {
-        $this->expectException(TypeError::class);
+        self::expectException(TypeError::class);
         query_parse(['foo=bar'], '&', PHP_QUERY_RFC1738);
     }
 
@@ -71,7 +67,7 @@ class FunctionsTest extends TestCase
      */
     public function testExtractQuery($query, $expectedData)
     {
-        $this->assertSame($expectedData, query_extract($query));
+        self::assertSame($expectedData, query_extract($query));
     }
 
     public function extractQueryProvider()
@@ -152,7 +148,7 @@ class FunctionsTest extends TestCase
      */
     public function testParse($query, $separator, $expected, $encoding)
     {
-        $this->assertSame($expected, query_parse($query, $separator, $encoding));
+        self::assertSame($expected, query_parse($query, $separator, $encoding));
     }
 
     public function parserProvider()
@@ -303,8 +299,8 @@ class FunctionsTest extends TestCase
         $expected_rfc1738,
         $expected_rfc3986
     ) {
-        $this->assertSame($expected_rfc1738, query_build($pairs, '&', PHP_QUERY_RFC1738));
-        $this->assertSame($expected_rfc3986, query_build($pairs, '&', PHP_QUERY_RFC3986));
+        self::assertSame($expected_rfc1738, query_build($pairs, '&', PHP_QUERY_RFC1738));
+        self::assertSame($expected_rfc3986, query_build($pairs, '&', PHP_QUERY_RFC3986));
     }
 
     public function buildProvider()
@@ -390,7 +386,7 @@ class FunctionsTest extends TestCase
 
     public function testBuildQueryThrowsExceptionOnWrongType()
     {
-        $this->expectException(TypeError::class);
+        self::expectException(TypeError::class);
         query_build(date_create());
     }
 
@@ -401,7 +397,7 @@ class FunctionsTest extends TestCase
      */
     public function testBuildQueryThrowsException($pairs, $enc_type)
     {
-        $this->expectException(InvalidQueryPair::class);
+        self::expectException(InvalidQueryPair::class);
         query_build($pairs, '&', $enc_type);
     }
 

@@ -74,10 +74,10 @@ The `League\Uri\query_parse` parameters are
 - `$query` can be the `null` value, any scalar or object which is stringable;
 - `$separator` is a string; by default it is the `&` character;
 - `$enc_type` is one of PHP's constant `PHP_QUERY_RFC3968` or `PHP_QUERY_RFC1738` which represented the supported encoding algoritm
-	- If you specify `PHP_QUERY_RFC3968` decoding will be done using [RFC3986](https://tools.ietf.org/html/rfc3986#section-3.4) rules;
-	- If you specify `PHP_QUERY_RFC1738` decoding will be done using [application/x-www-form-urlencoded](https://url.spec.whatwg.org/#urlencoded-parsing) rules;
+    - If you specify `PHP_QUERY_RFC3968` decoding will be done using [RFC3986](https://tools.ietf.org/html/rfc3986#section-3.4) rules;
+    - If you specify `PHP_QUERY_RFC1738` decoding will be done using [application/x-www-form-urlencoded](https://url.spec.whatwg.org/#urlencoded-parsing) rules;
 
-Here's a simple example showing how to use all the given paramters:
+Here's a simple example showing how to use all the given parameters:
 
 ```php
 <?php
@@ -136,7 +136,7 @@ Just like with `League\Uri\query_parse`, you can specify the separator and the e
 
 `League\Uri\query_parse` and `League\Uri\query_build` preserve the query string pairs content and order. If you want to extract PHP variables from the query string *à la* `parse_str` you can use `League\Uri\query_extract`. The function:
 
-- takes the same paramters as `League\Uri\query_parse`
+- takes the same parameters as `League\Uri\query_parse`
 - does not allow parameters key mangling in the returned array;
 
 ```php
@@ -188,9 +188,9 @@ use League\Uri\Parser\InvalidUriComponent;
 use function League\Uri\query_extract;
 
 try {
-	query_extract('foo=bar', '&', 42);
+    query_extract('foo=bar', '&', 42);
 } catch (InvalidUriComponent $e) {
-	//$e is an instanceof League\Uri\Parser\UnknownEncoding
+    //$e is an instanceof League\Uri\Parser\UnknownEncoding
 }
 ```
 
