@@ -45,7 +45,6 @@ function query_build($pairs, string $separator = '&', int $enc_type = PHP_QUERY_
  * @param string $separator The query string separator
  * @param int    $enc_type  The query encoding algorithm
  *
- * @return array
  */
 function query_parse($query, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): array
 {
@@ -61,7 +60,6 @@ function query_parse($query, string $separator = '&', int $enc_type = PHP_QUERY_
  * @param string $separator The query string separator
  * @param int    $enc_type  The query encoding algorithm
  *
- * @return array
  */
 function query_extract($query, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): array
 {

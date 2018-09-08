@@ -106,34 +106,30 @@ final class QueryBuilder
             throw new UnknownEncoding(sprintf('Unknown Encoding: %s', $enc_type));
         }
 
-        self::$regexpValue = '/
-            (%[A-Fa-f0-9]{2})|
-            [^A-Za-z0-9_\-\.~'.preg_quote(
-                str_replace(
-                    html_entity_decode($separator, ENT_HTML5, 'UTF-8'),
-                    '',
-                    self::ENCODING_LIST[$enc_type]['suffixValue']
-                ),
-                '/'
-            ).']+/ux';
+        self::$regexpValue = '/(%[A-Fa-f0-9]{2})|[^A-Za-z0-9_\-\.~'.preg_quote(
+            str_replace(
+                html_entity_decode($separator, ENT_HTML5, 'UTF-8'),
+                '',
+                self::ENCODING_LIST[$enc_type]['suffixValue']
+            ),
+            '/'
+        ).']+/ux';
 
-        self::$regexpKey = '/
-            (%[A-Fa-f0-9]{2})|
-            [^A-Za-z0-9_\-\.~'.preg_quote(
-                str_replace(
-                    html_entity_decode($separator, ENT_HTML5, 'UTF-8'),
-                    '',
-                    self::ENCODING_LIST[$enc_type]['suffixKey']
-                ),
-                '/'
-            ).']+/ux';
+        self::$regexpKey = '/(%[A-Fa-f0-9]{2})|[^A-Za-z0-9_\-\.~'.preg_quote(
+            str_replace(
+                html_entity_decode($separator, ENT_HTML5, 'UTF-8'),
+                '',
+                self::ENCODING_LIST[$enc_type]['suffixKey']
+            ),
+            '/'
+        ).']+/ux';
 
         $res = [];
         foreach ($pairs as $pair) {
             $res[] = self::buildPair($pair);
         }
 
-        if (empty($res)) {
+        if ([] === $res) {
             return null;
         }
 
@@ -148,11 +144,7 @@ final class QueryBuilder
     /**
      * Build a RFC3986 query key/value pair association.
      *
-     * @param array $pair
-     *
      * @throws InvalidQueryPair If the pair is invalid
-     *
-     * @return string
      */
     private static function buildPair(array $pair): string
     {
@@ -198,10 +190,6 @@ final class QueryBuilder
 
     /**
      * Encode Matches sequence.
-     *
-     * @param array $matches
-     *
-     * @return string
      */
     private static function encodeMatches(array $matches): string
     {

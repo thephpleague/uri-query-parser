@@ -77,7 +77,7 @@ final class QueryParser
      * @throws MalformedUriComponent If the query string is invalid
      * @throws UnknownEncoding       If the encoding type is invalid
      *
-     * @return array
+     * @return array collection of key/value pairs
      */
     public static function parse($query, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): array
     {
@@ -118,7 +118,7 @@ final class QueryParser
      *
      * @param string $pair The query string pair
      *
-     * @return array
+     * @return array a key/value pair
      */
     private static function parsePair(string $pair): array
     {
@@ -141,10 +141,6 @@ final class QueryParser
 
     /**
      * Decode a match string.
-     *
-     * @param array $matches
-     *
-     * @return string
      */
     private static function decodeMatch(array $matches): string
     {
@@ -168,8 +164,6 @@ final class QueryParser
      * @param mixed  $query     The query string to parse
      * @param string $separator The query string separator
      * @param int    $enc_type  The query encoding algorithm
-     *
-     * @return array
      */
     public static function extract($query, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): array
     {
@@ -201,8 +195,6 @@ final class QueryParser
      * @param array        $data  the submitted array
      * @param array|string $name  the pair key
      * @param string       $value the pair value
-     *
-     * @return array
      */
     private static function extractPhpVariable(array $data, $name, string $value = ''): array
     {

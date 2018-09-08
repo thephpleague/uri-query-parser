@@ -397,8 +397,7 @@ class FunctionsTest extends TestCase
     /**
      * @dataProvider failedBuilderProvider
      *
-     * @param mixed $pairs
-     * @param int   $enc_type
+     * @param int $enc_type
      */
     public function testBuildQueryThrowsException($pairs, $enc_type)
     {
