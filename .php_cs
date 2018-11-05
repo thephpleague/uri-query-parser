@@ -6,7 +6,7 @@ League.Uri (http://uri.thephpleague.com)
 @author  Ignace Nyamagana Butera <nyamsprod@gmail.com>
 @license https://github.com/thephpleague/uri-query-parser/blob/master/LICENSE (MIT License)
 @version 1.0.0
-@link    https://github.com/thephpleague/uri-query-parser
+@link    https://uri.thephpleague.com/query-parser
 
 For the full copyright and license information, please view the LICENSE
 file that was distributed with this source code.
@@ -34,10 +34,10 @@ return PhpCsFixer\Config::create()
         'no_empty_phpdoc' => true,
         'no_empty_comment' => true,
         'no_leading_import_slash' => true,
-        'no_superfluous_phpdoc_tags' => true,
         'no_trailing_comma_in_singleline_array' => true,
+        'no_superfluous_phpdoc_tags' => true,
         'no_unused_imports' => true,
-        'ordered_imports' => ['imports_order' => null, 'sort_algorithm' => 'alpha'],
+        'ordered_imports' => ['imports_order' => ['class', 'function', 'const'], 'sort_algorithm' => 'alpha'],
         'phpdoc_add_missing_param_annotation' => ['only_untyped' => false],
         'phpdoc_align' => true,
         'phpdoc_no_empty_return' => true,

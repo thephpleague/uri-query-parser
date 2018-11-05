@@ -6,7 +6,7 @@
  * @author  Ignace Nyamagana Butera <nyamsprod@gmail.com>
  * @license https://github.com/thephpleague/uri-query-parser/blob/master/LICENSE (MIT License)
  * @version 1.0.0
- * @link    https://github.com/thephpleague/uri-query-parser
+ * @link    https://uri.thephpleague.com/query-parser
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -24,14 +24,8 @@ use const PHP_QUERY_RFC3986;
  * Build a query string from a collection of key/value pairs.
  *
  * @see QueryBuilder::build
- *
- * @param mixed  $pairs     The query pairs
- * @param string $separator The query string separator
- * @param int    $enc_type  The query encoding algorithm
- *
- * @return null|string
  */
-function query_build($pairs, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986)
+function query_build(iterable $pairs, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): ?string
 {
     return QueryBuilder::build($pairs, $separator, $enc_type);
 }
@@ -41,10 +35,7 @@ function query_build($pairs, string $separator = '&', int $enc_type = PHP_QUERY_
  *
  * @see QueryParser::parse
  *
- * @param mixed  $query     The query string to parse
- * @param string $separator The query string separator
- * @param int    $enc_type  The query encoding algorithm
- *
+ * @param null|mixed $query
  */
 function query_parse($query, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): array
 {
@@ -56,10 +47,7 @@ function query_parse($query, string $separator = '&', int $enc_type = PHP_QUERY_
  *
  * @see QueryParser::extract
  *
- * @param mixed  $query     The query string to parse
- * @param string $separator The query string separator
- * @param int    $enc_type  The query encoding algorithm
- *
+ * @param null|mixed $query
  */
 function query_extract($query, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): array
 {

@@ -6,7 +6,7 @@
  * @author  Ignace Nyamagana Butera <nyamsprod@gmail.com>
  * @license https://github.com/thephpleague/uri-query-parser/blob/master/LICENSE (MIT License)
  * @version 1.0.0
- * @link    https://github.com/thephpleague/uri-query-parser
+ * @link    https://uri.thephpleague.com/query-parser
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -20,40 +20,40 @@ use League\Uri\Exception\MalformedUriComponent;
 use League\Uri\Exception\UnknownEncoding;
 use PHPUnit\Framework\TestCase;
 use TypeError;
-use const PHP_QUERY_RFC1738;
-use const PHP_QUERY_RFC3986;
 use function date_create;
 use function League\Uri\query_build;
 use function League\Uri\query_extract;
 use function League\Uri\query_parse;
+use const PHP_QUERY_RFC1738;
+use const PHP_QUERY_RFC3986;
 
 class FunctionsTest extends TestCase
 {
-    public function testEncodingThrowsExceptionWithQueryParser()
+    public function testEncodingThrowsExceptionWithQueryParser(): void
     {
         self::expectException(UnknownEncoding::class);
         query_parse('foo=bar', '&', 42);
     }
 
-    public function testMalformedUriComponentThrowsExceptionWithQueryParser()
+    public function testMalformedUriComponentThrowsExceptionWithQueryParser(): void
     {
         self::expectException(MalformedUriComponent::class);
         query_parse("foo=bar\0");
     }
 
-    public function testEncodingThrowsExceptionWithQueryBuilder()
+    public function testEncodingThrowsExceptionWithQueryBuilder(): void
     {
         self::expectException(UnknownEncoding::class);
         query_build([['foo', 'bar']], '&', 42);
     }
 
-    public function testBuildThrowsExceptionWithQueryBuilder()
+    public function testBuildThrowsExceptionWithQueryBuilder(): void
     {
         self::expectException(InvalidQueryPair::class);
         query_build([['foo', 'boo' => 'bar']]);
     }
 
-    public function testWrongTypeThrowExceptionParseQuery()
+    public function testWrongTypeThrowExceptionParseQuery(): void
     {
         self::expectException(TypeError::class);
         query_parse(['foo=bar'], '&', PHP_QUERY_RFC1738);
@@ -62,15 +62,14 @@ class FunctionsTest extends TestCase
     /**
      * @dataProvider extractQueryProvider
      *
-     * @param string $query
-     * @param array  $expectedData
+     * @param bool|string $query
      */
-    public function testExtractQuery($query, $expectedData)
+    public function testExtractQuery($query, array $expectedData): void
     {
         self::assertSame($expectedData, query_extract($query));
     }
 
-    public function extractQueryProvider()
+    public function extractQueryProvider(): array
     {
         return [
             [
@@ -141,17 +140,15 @@ class FunctionsTest extends TestCase
 
     /**
      * @dataProvider parserProvider
-     * @param string $query
-     * @param string $separator
-     * @param array  $expected
-     * @param int    $encoding
+     *
+     * @param mixed $query scalar or stringable object
      */
-    public function testParse($query, $separator, $expected, $encoding)
+    public function testParse($query, string $separator, array $expected, int $encoding): void
     {
         self::assertSame($expected, query_parse($query, $separator, $encoding));
     }
 
-    public function parserProvider()
+    public function parserProvider(): array
     {
         return [
             'stringable object' => [
@@ -290,20 +287,19 @@ class FunctionsTest extends TestCase
 
     /**
      * @dataProvider buildProvider
-     * @param array  $pairs
-     * @param string $expected_rfc1738
-     * @param string $expected_rfc3986
+     * @param ?string $expected_rfc1738
+     * @param ?string $expected_rfc3986
      */
     public function testBuild(
-        $pairs,
-        $expected_rfc1738,
-        $expected_rfc3986
-    ) {
+        iterable $pairs,
+        ?string $expected_rfc1738,
+        ?string $expected_rfc3986
+    ): void {
         self::assertSame($expected_rfc1738, query_build($pairs, '&', PHP_QUERY_RFC1738));
         self::assertSame($expected_rfc3986, query_build($pairs, '&', PHP_QUERY_RFC3986));
     }
 
-    public function buildProvider()
+    public function buildProvider(): array
     {
         return [
             'empty string' => [
@@ -384,24 +380,16 @@ class FunctionsTest extends TestCase
         ];
     }
 
-    public function testBuildQueryThrowsExceptionOnWrongType()
-    {
-        self::expectException(TypeError::class);
-        query_build(date_create());
-    }
-
     /**
      * @dataProvider failedBuilderProvider
-     *
-     * @param int $enc_type
      */
-    public function testBuildQueryThrowsException($pairs, $enc_type)
+    public function testBuildQueryThrowsException(iterable $pairs, int $enc_type): void
     {
         self::expectException(InvalidQueryPair::class);
         query_build($pairs, '&', $enc_type);
     }
 
-    public function failedBuilderProvider()
+    public function failedBuilderProvider(): array
     {
         return [
             'The collection can not contain empty pair' => [

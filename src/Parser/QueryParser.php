@@ -6,7 +6,7 @@
  * @author  Ignace Nyamagana Butera <nyamsprod@gmail.com>
  * @license https://github.com/thephpleague/uri-query-parser/blob/master/LICENSE (MIT License)
  * @version 1.0.0
- * @link    https://github.com/thephpleague/uri-query-parser
+ * @link    https://uri.thephpleague.com/query-parser
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -19,8 +19,6 @@ namespace League\Uri\Parser;
 use League\Uri\Exception\MalformedUriComponent;
 use League\Uri\Exception\UnknownEncoding;
 use TypeError;
-use const PHP_QUERY_RFC1738;
-use const PHP_QUERY_RFC3986;
 use function array_key_exists;
 use function explode;
 use function is_array;
@@ -34,6 +32,8 @@ use function str_replace;
 use function strpos;
 use function strtoupper;
 use function substr;
+use const PHP_QUERY_RFC1738;
+use const PHP_QUERY_RFC3986;
 
 /**
  * A class to parse a URI query string.
@@ -46,38 +46,22 @@ use function substr;
  */
 final class QueryParser
 {
-    /**
-     * @internal
-     */
-    const ENCODING_LIST = [PHP_QUERY_RFC1738 => 1, PHP_QUERY_RFC3986 => 1];
+    private const ENCODING_LIST = [PHP_QUERY_RFC1738 => 1, PHP_QUERY_RFC3986 => 1];
+
+    private const REGEXP_INVALID_CHARS = '/[\x00-\x1f\x7f]/';
+
+    private const REGEXP_ENCODED_PATTERN = ',%[A-Fa-f0-9]{2},';
+
+    private const REGEXP_DECODED_PATTERN = ',%2[D|E]|3[0-9]|4[1-9|A-F]|5[0-9|A|F]|6[1-9|A-F]|7[0-9|E],i';
 
     /**
-     * @internal
-     */
-    const REGEXP_INVALID_CHARS = '/[\x00-\x1f\x7f]/';
-
-    /**
-     * @internal
-     */
-    const REGEXP_ENCODED_PATTERN = ',%[A-Fa-f0-9]{2},';
-
-    /**
-     * @internal
-     */
-    const REGEXP_DECODED_PATTERN = ',%2[D|E]|3[0-9]|4[1-9|A-F]|5[0-9|A|F]|6[1-9|A-F]|7[0-9|E],i';
-
-    /**
-     * Parse a query string into a collection of key/value pairs.
+     * Parses a query string into a collection of key/value pairs.
      *
-     * @param mixed  $query     The query string to parse
-     * @param string $separator The query string separator
-     * @param int    $enc_type  The query encoding algorithm
+     * @param null|mixed $query
      *
-     * @throws TypeError             If the query string is a resource, an array or an object without the `__toString` method
+     * @throws TypeError             If the query is not stringable or the null value
      * @throws MalformedUriComponent If the query string is invalid
      * @throws UnknownEncoding       If the encoding type is invalid
-     *
-     * @return array collection of key/value pairs
      */
     public static function parse($query, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): array
     {
@@ -102,7 +86,7 @@ final class QueryParser
             return [['', null]];
         }
 
-        if (preg_match(self::REGEXP_INVALID_CHARS, $query)) {
+        if ((bool) preg_match(self::REGEXP_INVALID_CHARS, $query)) {
             throw new MalformedUriComponent(sprintf('Invalid query string: %s', $query));
         }
 
@@ -110,21 +94,18 @@ final class QueryParser
             $query = str_replace('+', ' ', $query);
         }
 
-        return array_map([QueryParser::class, 'parsePair'], explode($separator, $query));
+        return array_map([QueryParser::class, 'parsePair'], (array) explode($separator, $query));
     }
 
     /**
-     * Parse a query string pair.
-     *
-     * @param string $pair The query string pair
-     *
-     * @return array a key/value pair
+     * Returns the key/value pair from a query string pair.
      */
     private static function parsePair(string $pair): array
     {
-        list($key, $value) = explode('=', $pair, 2) + [1 => null];
+        [$key, $value] = explode('=', $pair, 2) + [1 => null];
+        $key = (string) $key;
 
-        if (preg_match(self::REGEXP_ENCODED_PATTERN, $key)) {
+        if ((bool) preg_match(self::REGEXP_ENCODED_PATTERN, $key)) {
             $key = preg_replace_callback(self::REGEXP_ENCODED_PATTERN, [QueryParser::class, 'decodeMatch'], $key);
         }
 
@@ -132,7 +113,7 @@ final class QueryParser
             return [$key, $value];
         }
 
-        if (preg_match(self::REGEXP_ENCODED_PATTERN, $value)) {
+        if ((bool) preg_match(self::REGEXP_ENCODED_PATTERN, $value)) {
             $value = preg_replace_callback(self::REGEXP_ENCODED_PATTERN, [QueryParser::class, 'decodeMatch'], $value);
         }
 
@@ -140,11 +121,11 @@ final class QueryParser
     }
 
     /**
-     * Decode a match string.
+     * Decodes a match string.
      */
     private static function decodeMatch(array $matches): string
     {
-        if (preg_match(self::REGEXP_DECODED_PATTERN, $matches[0])) {
+        if ((bool) preg_match(self::REGEXP_DECODED_PATTERN, $matches[0])) {
             return strtoupper($matches[0]);
         }
 
@@ -161,9 +142,7 @@ final class QueryParser
      * @see http://php.net/parse_str
      * @see https://wiki.php.net/rfc/on_demand_name_mangling
      *
-     * @param mixed  $query     The query string to parse
-     * @param string $separator The query string separator
-     * @param int    $enc_type  The query encoding algorithm
+     * @param null|mixed $query
      */
     public static function extract($query, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): array
     {
@@ -171,7 +150,7 @@ final class QueryParser
     }
 
     /**
-     * Parse a query pair like parse_str without mangling the results array keys.
+     * Parses a query pair like parse_str without mangling the results array keys.
      *
      * <ul>
      * <li>empty name are not saved</li>
@@ -199,7 +178,7 @@ final class QueryParser
     private static function extractPhpVariable(array $data, $name, string $value = ''): array
     {
         if (is_array($name)) {
-            list($name, $value) = $name;
+            [$name, $value] = $name;
             $value = rawurldecode((string) $value);
         }
 
@@ -207,13 +186,15 @@ final class QueryParser
             return $data;
         }
 
-        if (false === ($left_bracket_pos = strpos($name, '['))) {
+        $left_bracket_pos = strpos($name, '[');
+        if (false === $left_bracket_pos) {
             $data[$name] = $value;
 
             return $data;
         }
 
-        if (false === ($right_bracket_pos = strpos($name, ']', $left_bracket_pos))) {
+        $right_bracket_pos = strpos($name, ']', $left_bracket_pos);
+        if (false === $right_bracket_pos) {
             $data[$name] = $value;
 
             return $data;

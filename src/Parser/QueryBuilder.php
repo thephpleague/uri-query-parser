@@ -6,7 +6,7 @@
  * @author  Ignace Nyamagana Butera <nyamsprod@gmail.com>
  * @license https://github.com/thephpleague/uri-query-parser/blob/master/LICENSE (MIT License)
  * @version 1.0.0
- * @link    https://github.com/thephpleague/uri-query-parser
+ * @link    https://uri.thephpleague.com/query-parser
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -18,14 +18,9 @@ namespace League\Uri\Parser;
 
 use League\Uri\Exception\InvalidQueryPair;
 use League\Uri\Exception\UnknownEncoding;
-use Traversable;
-use TypeError;
-use const PHP_QUERY_RFC1738;
-use const PHP_QUERY_RFC3986;
 use function array_keys;
 use function html_entity_decode;
 use function implode;
-use function is_array;
 use function is_bool;
 use function is_numeric;
 use function is_scalar;
@@ -37,6 +32,8 @@ use function rawurldecode;
 use function rawurlencode;
 use function sprintf;
 use function str_replace;
+use const PHP_QUERY_RFC1738;
+use const PHP_QUERY_RFC3986;
 
 /**
  * A class to build a URI query string from a collection of key/value pairs.
@@ -49,10 +46,7 @@ use function str_replace;
  */
 final class QueryBuilder
 {
-    /**
-     * @internal
-     */
-    const ENCODING_LIST = [
+    private const ENCODING_LIST = [
         PHP_QUERY_RFC1738 => [
             'suffixKey' => '*',
             'suffixValue' => '*=&',
@@ -63,10 +57,7 @@ final class QueryBuilder
         ],
     ];
 
-    /**
-     * @internal
-     */
-    const REGEXP_UNRESERVED_CHAR = '/[^A-Za-z0-9_\-\.~]/';
+    private const REGEXP_UNRESERVED_CHAR = '/[^A-Za-z0-9_\-\.~]/';
 
     /**
      * @var string
@@ -82,26 +73,14 @@ final class QueryBuilder
      * Build a query string from an associative array.
      *
      * The method expects the return value from Query::parse to build
-     * a valid query string. This method differs from PHP http_build_query as:
+     * a valid query string. This method differs from PHP http_build_query as
+     * it does not modify parameters keys.
      *
-     *    - it does not modify parameters keys
-     *
-     * @param mixed  $pairs     Collection of key/value pairs as array
-     * @param string $separator query string separator
-     * @param int    $enc_type  query encoding type
-     *
-     * @throws TypeError        If the pairs are not iterable
-     * @throws InvalidQueryPair If a pair is invalid
      * @throws UnknownEncoding  If the encoding type is invalid
-     *
-     * @return null|string
+     * @throws InvalidQueryPair If a pair is invalid
      */
-    public static function build($pairs, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986)
+    public static function build(iterable $pairs, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): ?string
     {
-        if (!is_array($pairs) && !$pairs instanceof Traversable) {
-            throw new TypeError('the pairs collection must be an array or a Traversable object');
-        }
-
         if (null === (self::ENCODING_LIST[$enc_type] ?? null)) {
             throw new UnknownEncoding(sprintf('Unknown Encoding: %s', $enc_type));
         }
@@ -152,7 +131,7 @@ final class QueryBuilder
             throw new InvalidQueryPair('A pair must be a sequential array starting at `0` and containing two elements.');
         }
 
-        list($name, $value) = $pair;
+        [$name, $value] = $pair;
         if (!is_scalar($name)) {
             throw new InvalidQueryPair(sprintf('A pair key must be a scalar value `%s` given.', gettype($name)));
         }
@@ -161,12 +140,12 @@ final class QueryBuilder
             $name = (int) $name;
         }
 
-        if (is_string($name) && preg_match(self::$regexpKey, $name)) {
+        if (is_string($name) && (bool) preg_match(self::$regexpKey, $name)) {
             $name = preg_replace_callback(self::$regexpKey, [QueryBuilder::class, 'encodeMatches'], $name);
         }
 
         if (is_string($value)) {
-            if (!preg_match(self::$regexpValue, $value)) {
+            if (! (bool) preg_match(self::$regexpValue, $value)) {
                 return $name.'='.$value;
             }
 
@@ -182,18 +161,18 @@ final class QueryBuilder
         }
 
         if (null === $value) {
-            return $name;
+            return (string) $name;
         }
 
         throw new InvalidQueryPair(sprintf('A pair value must be a scalar value or the null value, `%s` given.', gettype($value)));
     }
 
     /**
-     * Encode Matches sequence.
+     * Encodes matched sequences.
      */
     private static function encodeMatches(array $matches): string
     {
-        if (preg_match(self::REGEXP_UNRESERVED_CHAR, rawurldecode($matches[0]))) {
+        if ((bool) preg_match(self::REGEXP_UNRESERVED_CHAR, rawurldecode($matches[0]))) {
             return rawurlencode($matches[0]);
         }
 
