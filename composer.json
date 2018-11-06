@@ -29,6 +29,10 @@
         "phpstan/phpstan-strict-rules": "^0.10.0",
         "phpstan/phpstan-phpunit": "^0.10.0"
     },
+    "suggest": {
+        "league/uri-components": "Manipulate URI components using modern API",
+        "league/uri-parser": "RFC3986 compliant URI parser"
+    },
     "autoload": {
         "psr-4": {
             "League\\Uri\\": "src"
@@ -55,9 +59,6 @@
             "@phpstan-src",
             "@phpstan-tests"
         ]
-    },
-    "suggests": {
-        "league/uri-components": "Manipulate URI components using modern API"
     },
     "extra": {
         "branch-alias": {
