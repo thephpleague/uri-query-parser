@@ -44,11 +44,11 @@ function query_parse($query, string $separator = '&', int $enc_type = PHP_QUERY_
 /**
  * Parse the query string like parse_str without mangling the results.
  *
- * @see QueryExtracter::extract
+ * @see QueryParser::extract
  *
  * @param null|mixed $query
  */
 function query_extract($query, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): array
 {
-    return QueryParser::convert(QueryParser::parse($query, $separator, $enc_type));
+    return QueryParser::extract($query, $separator, $enc_type);
 }

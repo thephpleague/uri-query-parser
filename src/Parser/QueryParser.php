@@ -273,7 +273,7 @@ final class QueryParser
     }
 
     /**
-     * Converts a collection of key/value pairs and returns the store PHP variables as elements of an array.
+     * Parses the query string like parse_str without mangling the results.
      *
      * The result is similar as PHP parse_str when used with its
      * second argument with the difference that variable names are
@@ -281,6 +281,17 @@ final class QueryParser
      *
      * @see http://php.net/parse_str
      * @see https://wiki.php.net/rfc/on_demand_name_mangling
+     *
+     * @param null|mixed $query
+     */
+    public static function extract($query, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): array
+    {
+        return self::convert(self::parse($query, $separator, $enc_type));
+    }
+
+    /**
+     * Converts a collection of key/value pairs and returns
+     * the store PHP variables as elements of an array.
      */
     public static function convert(iterable $pairs): array
     {
