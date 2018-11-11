@@ -16,7 +16,6 @@ declare(strict_types=1);
 
 namespace League\Uri;
 
-use League\Uri\Parser\QueryBuilder;
 use League\Uri\Parser\QueryParser;
 use const PHP_QUERY_RFC3986;
 
@@ -27,7 +26,7 @@ use const PHP_QUERY_RFC3986;
  */
 function query_build(iterable $pairs, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): ?string
 {
-    return QueryBuilder::build($pairs, $separator, $enc_type);
+    return QueryParser::build($pairs, $separator, $enc_type);
 }
 
 /**
@@ -45,11 +44,11 @@ function query_parse($query, string $separator = '&', int $enc_type = PHP_QUERY_
 /**
  * Parse the query string like parse_str without mangling the results.
  *
- * @see QueryParser::extract
+ * @see QueryExtracter::extract
  *
  * @param null|mixed $query
  */
 function query_extract($query, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): array
 {
-    return QueryParser::extract($query, $separator, $enc_type);
+    return QueryParser::convert(QueryParser::parse($query, $separator, $enc_type));
 }
