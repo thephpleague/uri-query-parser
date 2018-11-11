@@ -45,7 +45,7 @@ use const PHP_QUERY_RFC1738;
 use const PHP_QUERY_RFC3986;
 
 /**
- * A class to parse a URI query string.
+ * A class to parse the URI query string.
  *
  * @package  League\Uri
  * @author   Ignace Nyamagana Butera <nyamsprod@gmail.com>
@@ -53,7 +53,7 @@ use const PHP_QUERY_RFC3986;
  * @see      https://tools.ietf.org/html/rfc3986#section-3.4
  * @internal Use the function League\Uri\query_parse and League\Uri\query_extract instead
  */
-final class QueryParser
+final class QueryString
 {
     private const REGEXP_INVALID_CHARS = '/[\x00-\x1f\x7f]/';
 
@@ -124,7 +124,7 @@ final class QueryParser
             $query = str_replace('+', ' ', $query);
         }
 
-        return array_map([QueryParser::class, 'parsePair'], (array) explode($separator, $query));
+        return array_map([self::class, 'parsePair'], (array) explode($separator, $query));
     }
 
     /**

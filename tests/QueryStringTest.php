@@ -18,12 +18,10 @@ use ArrayIterator;
 use League\Uri\Exception\InvalidQueryPair;
 use League\Uri\Exception\MalformedUriComponent;
 use League\Uri\Exception\UnknownEncoding;
+use League\Uri\Parser\QueryString;
 use PHPUnit\Framework\TestCase;
 use TypeError;
 use function date_create;
-use function League\Uri\query_build;
-use function League\Uri\query_extract;
-use function League\Uri\query_parse;
 use const PHP_QUERY_RFC1738;
 use const PHP_QUERY_RFC3986;
 
@@ -32,31 +30,31 @@ class FunctionsTest extends TestCase
     public function testEncodingThrowsExceptionWithQueryParser(): void
     {
         self::expectException(UnknownEncoding::class);
-        query_parse('foo=bar', '&', 42);
+        QueryString::parse('foo=bar', '&', 42);
     }
 
     public function testMalformedUriComponentThrowsExceptionWithQueryParser(): void
     {
         self::expectException(MalformedUriComponent::class);
-        query_parse("foo=bar\0");
+        QueryString::parse("foo=bar\0");
     }
 
     public function testEncodingThrowsExceptionWithQueryBuilder(): void
     {
         self::expectException(UnknownEncoding::class);
-        query_build([['foo', 'bar']], '&', 42);
+        QueryString::build([['foo', 'bar']], '&', 42);
     }
 
     public function testBuildThrowsExceptionWithQueryBuilder(): void
     {
         self::expectException(InvalidQueryPair::class);
-        query_build([['foo', 'boo' => 'bar']]);
+        QueryString::build([['foo', 'boo' => 'bar']]);
     }
 
     public function testWrongTypeThrowExceptionParseQuery(): void
     {
         self::expectException(TypeError::class);
-        query_parse(['foo=bar'], '&', PHP_QUERY_RFC1738);
+        QueryString::parse(['foo=bar'], '&', PHP_QUERY_RFC1738);
     }
 
     /**
@@ -66,7 +64,7 @@ class FunctionsTest extends TestCase
      */
     public function testExtractQuery($query, array $expectedData): void
     {
-        self::assertSame($expectedData, query_extract($query));
+        self::assertSame($expectedData, QueryString::extract($query));
     }
 
     public function extractQueryProvider(): array
@@ -145,7 +143,7 @@ class FunctionsTest extends TestCase
      */
     public function testParse($query, string $separator, array $expected, int $encoding): void
     {
-        self::assertSame($expected, query_parse($query, $separator, $encoding));
+        self::assertSame($expected, QueryString::parse($query, $separator, $encoding));
     }
 
     public function parserProvider(): array
@@ -295,8 +293,8 @@ class FunctionsTest extends TestCase
         ?string $expected_rfc1738,
         ?string $expected_rfc3986
     ): void {
-        self::assertSame($expected_rfc1738, query_build($pairs, '&', PHP_QUERY_RFC1738));
-        self::assertSame($expected_rfc3986, query_build($pairs, '&', PHP_QUERY_RFC3986));
+        self::assertSame($expected_rfc1738, QueryString::build($pairs, '&', PHP_QUERY_RFC1738));
+        self::assertSame($expected_rfc3986, QueryString::build($pairs, '&', PHP_QUERY_RFC3986));
     }
 
     public function buildProvider(): array
@@ -386,7 +384,7 @@ class FunctionsTest extends TestCase
     public function testBuildQueryThrowsException(iterable $pairs, int $enc_type): void
     {
         self::expectException(InvalidQueryPair::class);
-        query_build($pairs, '&', $enc_type);
+        QueryString::build($pairs, '&', $enc_type);
     }
 
     public function failedBuilderProvider(): array
