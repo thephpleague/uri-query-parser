@@ -133,10 +133,19 @@ Just like with `QueryString::parse`, you can specify the separator and the encod
 
 ### Extracting PHP variables
 
-`QueryString::parse` and `QueryString::build` preserve the query string pairs content and order. If you want to extract PHP variables from the query string *à la* `parse_str` you can use `QueryString::extract`. The public static method:
+```php
+<?php
 
-- takes the same parameters as `League\Uri\QueryString::parse`
-- does not allow parameters key mangling in the returned array;
+public static function QueryString::extract($query, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): array;
+public static function QueryString::convert(iterable $pairs): array;
+```
+
+`QueryString::parse` and `QueryString::build` preserve the query string pairs content and order. If you want to extract PHP variables from the query string *à la* `parse_str` you can use:
+
+- The `QueryString::extract` method which takes the same parameters as `League\Uri\QueryString::parse`
+- The `QueryString::convert` method which takes the result of `League\Uri\QueryString::parse`
+
+both methods, however, do not allow parameters key mangling in the returned array like  `parse_str`;
 
 ```php
 <?php

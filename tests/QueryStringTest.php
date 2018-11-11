@@ -25,7 +25,7 @@ use function date_create;
 use const PHP_QUERY_RFC1738;
 use const PHP_QUERY_RFC3986;
 
-class FunctionsTest extends TestCase
+class QueryStringTest extends TestCase
 {
     public function testEncodingThrowsExceptionWithQueryParser(): void
     {
