@@ -284,7 +284,12 @@ final class QueryParser
      */
     public static function convert(iterable $pairs): array
     {
-        return array_reduce($pairs, [self::class, 'extractPhpVariable'], []);
+        $retval = [];
+        foreach ($pairs as $pair) {
+            $retval = self::extractPhpVariable($retval, $pair);
+        }
+
+        return $retval;
     }
 
     /**
