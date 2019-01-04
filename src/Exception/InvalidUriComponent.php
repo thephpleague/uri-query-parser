@@ -1,7 +1,7 @@
 <?php
 
 /**
- * League.Uri (http://uri.thephpleague.com).
+ * League.Uri (http://uri.thephpleague.com)
  *
  * @author  Ignace Nyamagana Butera <nyamsprod@gmail.com>
  * @license https://github.com/thephpleague/uri-query-parser/blob/master/LICENSE (MIT License)

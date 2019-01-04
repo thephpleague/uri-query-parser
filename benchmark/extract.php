@@ -1,7 +1,7 @@
 <?php
 
 /**
- * League.Uri (http://uri.thephpleague.com).
+ * League.Uri (http://uri.thephpleague.com)
  *
  * @author  Ignace Nyamagana Butera <nyamsprod@gmail.com>
  * @license https://github.com/thephpleague/uri-query-parser/blob/master/LICENSE (MIT License)
@@ -11,6 +11,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 require __DIR__.'/../src/Parser/QueryString.php';
 
 $query = 'module=home&action=show&page=3';

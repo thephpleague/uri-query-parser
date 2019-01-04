@@ -1,7 +1,7 @@
 <?php
 
 /**
- * League.Uri (http://uri.thephpleague.com).
+ * League.Uri (http://uri.thephpleague.com)
  *
  * @author  Ignace Nyamagana Butera <nyamsprod@gmail.com>
  * @license https://github.com/thephpleague/uri-query-parser/blob/master/LICENSE (MIT License)
@@ -47,11 +47,7 @@ use const PHP_QUERY_RFC3986;
 /**
  * A class to parse the URI query string.
  *
- * @package  League\Uri
- * @author   Ignace Nyamagana Butera <nyamsprod@gmail.com>
- * @since    1.0.0
- * @see      https://tools.ietf.org/html/rfc3986#section-3.4
- * @internal Use the function League\Uri\query_parse and League\Uri\query_extract instead
+ * @see https://tools.ietf.org/html/rfc3986#section-3.4
  */
 final class QueryString
 {
@@ -83,6 +79,13 @@ final class QueryString
      * @var string
      */
     private static $regexpValue;
+
+    /**
+     * @codeCoverageIgnore
+     */
+    private function __construct()
+    {
+    }
 
     /**
      * Parses a query string into a collection of key/value pairs.
