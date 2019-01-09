@@ -39,7 +39,6 @@ use function rawurlencode;
 use function sprintf;
 use function str_replace;
 use function strpos;
-use function strtoupper;
 use function substr;
 use const PHP_QUERY_RFC1738;
 use const PHP_QUERY_RFC3986;
@@ -70,6 +69,9 @@ final class QueryString
         ],
     ];
 
+    private const DECODE_PAIR_VALUE = 1;
+    private const PRESERVE_PAIR_VALUE = 2;
+
     /**
      * @var string
      */
@@ -91,32 +93,58 @@ final class QueryString
      * Parses a query string into a collection of key/value pairs.
      *
      * @param null|mixed $query
-     *
-     * @throws TypeError             If the query is not stringable or the null value
-     * @throws MalformedUriComponent If the query string is invalid
-     * @throws UnknownEncoding       If the encoding type is invalid
      */
     public static function parse($query, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): array
     {
-        if (!isset(self::ENCODING_LIST[$enc_type])) {
-            throw new UnknownEncoding(sprintf('Unknown Encoding: %s', $enc_type));
-        }
-
+        $query = self::prepareQuery($query, $separator, $enc_type);
         if (null === $query) {
             return [];
-        }
-
-        if (!is_scalar($query) && !method_exists($query, '__toString')) {
-            throw new TypeError(sprintf('The query must be a scalar, a stringable object or the `null` value, `%s` given', gettype($query)));
         }
 
         if (is_bool($query)) {
             return [[$query ? '1' : '0', null]];
         }
 
-        $query = (string) $query;
         if ('' === $query) {
             return [['', null]];
+        }
+
+        $retval = [];
+        foreach ((array) explode($separator, $query) as $pair) {
+            $retval[] = self::parsePair((string) $pair, self::DECODE_PAIR_VALUE);
+        }
+
+        return $retval;
+    }
+
+    /**
+     * Prepare and normalize query before processing.
+     *
+     * @param null|mixed $query
+     *
+     * @throws TypeError             If the query is not stringable or the null value
+     * @throws MalformedUriComponent If the query string is invalid
+     * @throws UnknownEncoding       If the encoding type is invalid
+     *
+     * @return null|string|bool
+     */
+    private static function prepareQuery($query, string $separator, int $enc_type)
+    {
+        if (!isset(self::ENCODING_LIST[$enc_type])) {
+            throw new UnknownEncoding(sprintf('Unknown Encoding: %s', $enc_type));
+        }
+
+        if (null === $query || is_bool($query)) {
+            return $query;
+        }
+
+        if (!is_scalar($query) && !method_exists($query, '__toString')) {
+            throw new TypeError(sprintf('The query must be a scalar, a stringable object or the `null` value, `%s` given', gettype($query)));
+        }
+
+        $query = (string) $query;
+        if ('' === $query) {
+            return $query;
         }
 
         if (1 === preg_match(self::REGEXP_INVALID_CHARS, $query)) {
@@ -124,16 +152,16 @@ final class QueryString
         }
 
         if (PHP_QUERY_RFC1738 === $enc_type) {
-            $query = str_replace('+', ' ', $query);
+            return str_replace('+', ' ', $query);
         }
 
-        return array_map([self::class, 'parsePair'], (array) explode($separator, $query));
+        return $query;
     }
 
     /**
      * Returns the key/value pair from a query string pair.
      */
-    private static function parsePair(string $pair): array
+    private static function parsePair(string $pair, int $parseValue): array
     {
         [$key, $value] = explode('=', $pair, 2) + [1 => null];
         $key = (string) $key;
@@ -146,7 +174,7 @@ final class QueryString
             return [$key, $value];
         }
 
-        if (1 === preg_match(self::REGEXP_ENCODED_PATTERN, $value)) {
+        if ($parseValue === self::DECODE_PAIR_VALUE && 1 === preg_match(self::REGEXP_ENCODED_PATTERN, $value)) {
             $value = preg_replace_callback(self::REGEXP_ENCODED_PATTERN, [self::class, 'decodeMatch'], $value);
         }
 
@@ -158,10 +186,6 @@ final class QueryString
      */
     private static function decodeMatch(array $matches): string
     {
-        if (1 === preg_match(self::REGEXP_DECODED_PATTERN, $matches[0])) {
-            return strtoupper($matches[0]);
-        }
-
         return rawurldecode($matches[0]);
     }
 
@@ -289,7 +313,21 @@ final class QueryString
      */
     public static function extract($query, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): array
     {
-        return self::convert(self::parse($query, $separator, $enc_type));
+        $query = self::prepareQuery($query, $separator, $enc_type);
+        if (null === $query || '' === $query) {
+            return [];
+        }
+
+        if (is_bool($query)) {
+            return [$query ? '1' : '0' => ''];
+        }
+
+        $retval = [];
+        foreach ((array) explode($separator, $query) as $pair) {
+            $retval[] = self::parsePair((string) $pair, self::PRESERVE_PAIR_VALUE);
+        }
+
+        return self::convert($retval);
     }
 
     /**

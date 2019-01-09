@@ -71,6 +71,18 @@ class QueryStringTest extends TestCase
     {
         return [
             [
+                'query' => null,
+                'expected' => [],
+            ],
+            [
+                'query' => false,
+                'expected' => ['0' => ''],
+            ],
+            [
+                'query' => '%25car=%25car',
+                'expected' => ['%car' => '%car'],
+            ],
+            [
                 'query' => '&&',
                 'expected' => [],
             ],
