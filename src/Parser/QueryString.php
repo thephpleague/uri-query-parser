@@ -38,6 +38,7 @@ use function rawurldecode;
 use function rawurlencode;
 use function sprintf;
 use function str_replace;
+use function str_split;
 use function strpos;
 use function substr;
 use const PHP_QUERY_RFC1738;
@@ -96,13 +97,9 @@ final class QueryString
      */
     public static function parse($query, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): array
     {
-        $query = self::prepareQuery($query, $separator, $enc_type);
+        $query = self::prepareQuery($query, $enc_type);
         if (null === $query) {
             return [];
-        }
-
-        if (is_bool($query)) {
-            return [[$query ? '1' : '0', null]];
         }
 
         if ('' === $query) {
@@ -110,7 +107,7 @@ final class QueryString
         }
 
         $retval = [];
-        foreach ((array) explode($separator, $query) as $pair) {
+        foreach (self::getPairs($query, $separator) as $pair) {
             $retval[] = self::parsePair((string) $pair, self::DECODE_PAIR_VALUE);
         }
 
@@ -122,20 +119,22 @@ final class QueryString
      *
      * @param null|mixed $query
      *
-     * @throws TypeError             If the query is not stringable or the null value
      * @throws MalformedUriComponent If the query string is invalid
+     * @throws TypeError             If the query is not stringable or the null value
      * @throws UnknownEncoding       If the encoding type is invalid
-     *
-     * @return null|string|bool
      */
-    private static function prepareQuery($query, string $separator, int $enc_type)
+    private static function prepareQuery($query, int $enc_type): ?string
     {
         if (!isset(self::ENCODING_LIST[$enc_type])) {
             throw new UnknownEncoding(sprintf('Unknown Encoding: %s', $enc_type));
         }
 
-        if (null === $query || is_bool($query)) {
+        if (null === $query) {
             return $query;
+        }
+
+        if (is_bool($query)) {
+            return true === $query ? '1' : '0';
         }
 
         if (!is_scalar($query) && !method_exists($query, '__toString')) {
@@ -156,6 +155,19 @@ final class QueryString
         }
 
         return $query;
+    }
+
+    private static function getPairs(string $query, string $separator): array
+    {
+        if ('' === $separator) {
+            return str_split($query);
+        }
+
+        if (false === strpos($query, $separator)) {
+            return [$query];
+        }
+
+        return (array) explode($separator, $query);
     }
 
     /**
@@ -313,17 +325,13 @@ final class QueryString
      */
     public static function extract($query, string $separator = '&', int $enc_type = PHP_QUERY_RFC3986): array
     {
-        $query = self::prepareQuery($query, $separator, $enc_type);
+        $query = self::prepareQuery($query, $enc_type);
         if (null === $query || '' === $query) {
             return [];
         }
 
-        if (is_bool($query)) {
-            return [$query ? '1' : '0' => ''];
-        }
-
         $retval = [];
-        foreach ((array) explode($separator, $query) as $pair) {
+        foreach (self::getPairs($query, $separator) as $pair) {
             $retval[] = self::parsePair((string) $pair, self::PRESERVE_PAIR_VALUE);
         }
 
