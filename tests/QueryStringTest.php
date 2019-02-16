@@ -71,6 +71,18 @@ class QueryStringTest extends TestCase
     {
         return [
             [
+                'query' => null,
+                'expected' => [],
+            ],
+            [
+                'query' => false,
+                'expected' => ['0' => ''],
+            ],
+            [
+                'query' => '%25car=%25car',
+                'expected' => ['%car' => '%car'],
+            ],
+            [
                 'query' => '&&',
                 'expected' => [],
             ],
@@ -149,6 +161,12 @@ class QueryStringTest extends TestCase
     public function parserProvider(): array
     {
         return [
+            'empty separator' => [
+                'foo',
+                '',
+                [['f', null], ['o', null], ['o', null]],
+                PHP_QUERY_RFC3986,
+            ],
             'stringable object' => [
                 new class() {
                     public function __toString()
