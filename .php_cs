@@ -1,12 +1,9 @@
 <?php
 
 $header = <<<EOF
-League.Uri (http://uri.thephpleague.com)
+League Uri Query String Parser (https://uri.thephpleague.com)
 
-@author  Ignace Nyamagana Butera <nyamsprod@gmail.com>
-@license https://github.com/thephpleague/uri-query-parser/blob/master/LICENSE (MIT License)
-@version 1.0.0
-@link    https://uri.thephpleague.com/query-parser
+(c) Ignace Nyamagana Butera <nyamsprod@gmail.com>
 
 For the full copyright and license information, please view the LICENSE
 file that was distributed with this source code.
@@ -34,8 +31,9 @@ return PhpCsFixer\Config::create()
         'no_empty_phpdoc' => true,
         'no_empty_comment' => true,
         'no_leading_import_slash' => true,
-        'no_superfluous_phpdoc_tags' => true,
         'no_trailing_comma_in_singleline_array' => true,
+        'no_trailing_whitespace' => true,
+        'no_whitespace_in_blank_line' => true,
         'no_superfluous_phpdoc_tags' => true,
         'no_unused_imports' => true,
         'ordered_imports' => ['imports_order' => ['class', 'function', 'const'], 'sort_algorithm' => 'alpha'],
