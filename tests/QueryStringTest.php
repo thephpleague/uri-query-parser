@@ -142,6 +142,12 @@ class QueryStringTest extends TestCase
                     'foo' => ['bar', 'baz'],
                 ],
             ],
+            [
+                'query' => 'a%00b=c',
+                'expected' => [
+                    'ab' => 'c',
+                ],
+            ],
         ];
     }
 
