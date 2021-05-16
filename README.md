@@ -4,6 +4,8 @@ Uri Query Parser
 [![Build Status](https://img.shields.io/travis/thephpleague/uri-query-parser/master.svg?style=flat-square)](https://travis-ci.org/thephpleague/uri-query-parser)
 [![Latest Version](https://img.shields.io/github/release/thephpleague/uri-query-parser.svg?style=flat-square)](https://github.com/thephpleague/uri-query-parser/releases)
 
+# THIS PACKAGE IS ON MAINTENANCE MODE SINCE 2019-10-18, FOR ANY NEW PROJECT PLEASE CONSIDER USING [league/uri-components v2+](https://github.com/thephpleague/uri-components)
+
 This package contains a userland PHP uri query parser and builder.
 
 ```php
